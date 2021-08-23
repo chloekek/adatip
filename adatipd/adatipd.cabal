@@ -41,7 +41,8 @@ library
         http-api-data,
         optparse-applicative,
         servant,
-        text
+        text,
+        vector
 
 executable adatipd
 

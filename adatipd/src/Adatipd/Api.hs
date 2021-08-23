@@ -6,6 +6,7 @@ import Adatipd.Cardano (Address, Lovelace)
 import Adatipd.Nickname (Nickname)
 import Data.Int (Int64)
 import Data.Text (Text)
+import Data.Vector (Vector)
 import Servant.API (type (:>), Capture, Get, JSON)
 
 type Api =
@@ -19,9 +20,9 @@ data CreatorHome =
     { chNickname :: Nickname
     , chName :: Text
     , chBiography :: Text
-    , chTipSuggestions :: [TipSuggestion]
-    , chTotalPosts :: [TotalPosts]
-    , chMostRecentPosts :: [Post] }
+    , chTipSuggestions :: Vector TipSuggestion
+    , chTotalPosts :: Vector TotalPosts
+    , chMostRecentPosts :: Vector Post }
 
 -- |
 -- A tip suggested by a creator, shown on their home page.
