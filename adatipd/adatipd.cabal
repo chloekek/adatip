@@ -11,6 +11,7 @@ common haskell-settings
         DataKinds
         DerivingStrategies
         InstanceSigs
+        RecordWildCards
         TypeOperators
 
     default-language:
@@ -33,12 +34,30 @@ library
         Adatipd.Api
         Adatipd.Cardano
         Adatipd.Nickname
+        Adatipd.Options
 
     build-depends:
         base,
         http-api-data,
+        optparse-applicative,
         servant,
         text
+
+executable adatipd
+
+    import:
+        haskell-settings
+
+    hs-source-dirs:
+        executable
+
+    main-is:
+        adatipd.hs
+
+    build-depends:
+        adatipd,
+        base,
+        optparse-applicative
 
 test-suite test-unit
 
