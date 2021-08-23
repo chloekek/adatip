@@ -1,0 +1,67 @@
+cabal-version: 3.0
+
+name: adatipd
+version: 0.0.0.0
+
+common haskell-settings
+
+    -- Only list extensions that do not impact code that doesn’t need them.
+    -- Other extensions should be explicitly enabled with LANGUAGE pragmas.
+    default-extensions:
+        DataKinds
+        DerivingStrategies
+        InstanceSigs
+        TypeOperators
+
+    default-language:
+        Haskell2010
+
+    ghc-options:
+        -Wall
+        -Wincomplete-record-updates
+        -Wincomplete-uni-patterns
+
+library
+
+    import:
+        haskell-settings
+
+    hs-source-dirs:
+        src
+
+    exposed-modules:
+        Adatipd.Api
+        Adatipd.Cardano
+        Adatipd.Nickname
+
+    build-depends:
+        base,
+        http-api-data,
+        servant,
+        text
+
+test-suite test-unit
+
+    import:
+        haskell-settings
+
+    type:
+        exitcode-stdio-1.0
+
+    hs-source-dirs:
+        test-unit
+
+    main-is:
+        Spec.hs
+
+    other-modules:
+        Adatipd.NicknameSpec
+
+    build-depends:
+        adatipd,
+        base,
+        hedgehog,
+        hspec,
+        hspec-discover,
+        hspec-hedgehog,
+        text
