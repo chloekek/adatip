@@ -5,6 +5,7 @@ exclusive content though a subscription-based monetization scheme.
 
 ## Highlights
 
+ - Post exclusive content and earn through subscriptions.
  - Pay to subscribe to creators for exclusive content.
  - Tip creators using decentralized payment system.
  - Host your own instance and earn commission.
