@@ -1,4 +1,4 @@
-# AdaTip
+# Adatip
 
 Creator tipping service that is censorship-resistant and gives access to
 exclusive content though a subscription-based monetization scheme.
@@ -42,7 +42,7 @@ exclusive content though a subscription-based monetization scheme.
   <dt>Tip</dt>
   <dd>
     Coins sent directly to a creator.
-    Not a feature of AdaTip per se,
+    Not a feature of Adatip per se,
     but see <em>tip suggestion</em>.
     Tips do not grant access to exclusive content.
   </dd>

@@ -21,7 +21,7 @@ optionsParserInfo :: ParserInfo Options
 optionsParserInfo =
   info (optionsParser <**> helper) $
     fullDesc
-    <> progDesc "Daemon for serving a single AdaTip instance"
+    <> progDesc "Daemon for serving a single Adatip instance"
 
 optionsParser :: Parser Options
 optionsParser = do

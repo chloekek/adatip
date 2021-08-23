@@ -1,4 +1,4 @@
-# AdaTip daemon
+# Adatip daemon
 
 This implements all the server-side logic.
 The adatipd program is hosted by instance administrators,
