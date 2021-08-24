@@ -27,6 +27,7 @@ formatAddress (Address bech32) = bech32
 
 newtype Lovelace =
   Lovelace Integer
+  deriving stock (Show)
 
 formatAda :: Lovelace -> String
 formatAda (Lovelace lovelace) =
