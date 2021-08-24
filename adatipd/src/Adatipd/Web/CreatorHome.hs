@@ -13,11 +13,12 @@ module Adatipd.Web.CreatorHome
   , Post (..)
   ) where
 
-import Adatipd.Cardano (Address, Lovelace)
+import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatAddress)
 import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.Layout (renderLayout)
 import Adatipd.Web.NotFound (handleNotFound)
+import Data.Foldable (for_)
 import Data.Int (Int64)
 import Data.Text (Text)
 import Data.Vector (Vector)
@@ -26,7 +27,7 @@ import Text.Blaze (Markup)
 
 import qualified Adatipd.Nickname as Nickname (format)
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
-import qualified Data.Vector as Vector (empty)
+import qualified Data.Vector as Vector (empty, fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 
@@ -61,7 +62,10 @@ fetchCreatorHome nickname =
         { chNickname = nickname
         , chName = "Henk de Vries"
         , chBiography = "Ik ben Henk de Vries!"
-        , chTipSuggestions = Vector.empty
+        , chTipSuggestions =
+            Vector.fromList
+              [ TipSuggestion "Koffie" (Lovelace 1000000) (Address "addr1x")
+              , TipSuggestion "Chips" (Lovelace 2000000) (Address "addr1y") ]
         , chTotalPosts = Vector.empty
         , chMostRecentPosts = Vector.empty
         }
@@ -73,6 +77,14 @@ renderCreatorHome options CreatorHome {..} =
   renderLayout options chName $ do
     HH.h1 $ HB.text chName
     HH.p $ HB.text chBiography
+    HH.table $ do
+      HH.tbody $ do
+        for_ chTipSuggestions $
+          \TipSuggestion {..} ->
+            HH.tr $ do
+              HH.td $ HB.text tsTitle
+              HH.td $ HB.string (formatAda tsAmount)
+              HH.td $ HB.text (formatAddress tsAddress)
 
 --------------------------------------------------------------------------------
 -- Data types
@@ -110,3 +122,9 @@ data TotalPosts =
 
 data Post =
   Post
+    { pTitle :: Text
+    , pSummary :: Text
+    , pContent :: Vector Media
+    }
+
+data Media

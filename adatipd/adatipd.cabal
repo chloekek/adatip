@@ -45,6 +45,7 @@ library
         blaze-markup,
         http-types,
         optparse-applicative,
+        scientific,
         text,
         vector,
         wai
