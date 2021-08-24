@@ -10,6 +10,7 @@ common haskell-settings
     default-extensions:
         DerivingStrategies
         LambdaCase
+        NumericUnderscores
         RecordWildCards
         ViewPatterns
 
@@ -45,6 +46,7 @@ library
         blaze-markup,
         http-types,
         optparse-applicative,
+        scientific,
         text,
         vector,
         wai
@@ -81,6 +83,7 @@ test-suite test-unit
         Spec.hs
 
     other-modules:
+        Adatipd.CardanoSpec
         Adatipd.NicknameSpec
 
     build-depends:
