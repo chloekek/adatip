@@ -19,7 +19,7 @@
         rec {
           devShell = (import ./shell.nix) { nixpkgs = pkgs; };
           packages = {
-            cardano-node = cardano-node.packages.${system}.cardano-node;
+            cardano-node = cardano-node.apps.${system}.cardano-node;
           };
         }
     );
