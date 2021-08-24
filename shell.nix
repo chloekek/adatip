@@ -22,6 +22,7 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
+            nixpkgs.cachix              # To push to Cachix manually.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
