@@ -5,16 +5,23 @@ module Adatipd.Cardano.Testnet
   , withTestnet
   ) where
 
+import Adatipd.Cardano (Lovelace (..))
 import Control.Exception (bracket)
 import Data.Aeson ((.=))
 import Data.Foldable (for_)
+import Data.Int (Int64)
 import Data.Set (Set)
+import Data.Time.Clock (nominalDiffTimeToSeconds)
+import Data.Time.Clock.POSIX (getPOSIXTime)
 import Data.Word (Word16)
 import System.Directory (createDirectoryIfMissing)
 import System.FilePath.Posix ((</>))
-import System.IO.Temp (withSystemTempDirectory)
+import System.IO (hClose)
+import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
+import System.Process (callProcess)
 
-import qualified Data.Aeson as Ae (Value, encodeFile, object)
+import qualified Data.Aeson as Ae (Value, encode, encodeFile, object)
+import qualified Data.ByteString.Lazy as LBS (hPutStr)
 import qualified Data.Set as Set (delete, fromList, toList)
 
 --------------------------------------------------------------------------------
@@ -46,6 +53,7 @@ setupTestnet :: FilePath -> IO Testnet
 setupTestnet directory = do
   let nodes = Set.fromList [3000, 3001, 3002, 3003]
   writeTopologies directory nodes
+  writeByronGenesis directory
   pure Testnet { tDirectory = directory }
 
 teardownTestnet :: Testnet -> IO ()
@@ -103,3 +111,133 @@ nodesPeers :: Ord a => Set a -> [(a, Set a)]
 nodesPeers nodes =
   [ (node, Set.delete node nodes)
   | node <- Set.toList nodes ]
+
+--------------------------------------------------------------------------------
+-- Byron genesis files
+
+-- |
+-- Write the Byron genesis files.
+writeByronGenesis :: FilePath -> IO ()
+writeByronGenesis directory =
+
+  -- Write the Byron protocol parameters to a file.
+  -- This file will be read by generateByronGenesis.
+  -- We do not need the file anymore afterwards (I hope).
+  withSystemTempFile "" $
+    \byronGenesisSpecPath byronGenesisSpecFile -> do
+      LBS.hPutStr byronGenesisSpecFile $
+        Ae.encode @Ae.Value byronGenesisSpec
+      hClose byronGenesisSpecFile
+
+      -- Write the Byron genesis files.
+      -- Directory will be created by generateByronGenesis,
+      -- and must not already exist otherwise it crashes.
+      let byronDirectory = directory </> "byron"
+      generateByronGenesis
+        byronDirectory
+        byronGenesisSpecPath
+        5
+        5
+        (Lovelace 1_000_000_000_000)
+        0.5
+
+-- |
+-- Byron protocol parameters.
+byronGenesisSpec :: Ae.Value
+byronGenesisSpec =
+  Ae.object
+    [ -- TODO: Clearly document what each parameter does.
+      "heavyDelThd"       .= id @String "300000000000"
+    , "maxBlockSize"      .= id @String "2000000"
+    , "maxTxSize"         .= id @String "4096"
+    , "maxHeaderSize"     .= id @String "2000000"
+    , "maxProposalSize"   .= id @String "700"
+    , "mpcThd"            .= id @String "20000000000000"
+    , "scriptVersion"     .= id @Int 0
+    , "slotDuration"      .= id @String "1000"
+    , "unlockStakeEpoch"  .= id @String "18446744073709551615"
+    , "updateImplicit"    .= id @String "10000"
+    , "updateProposalThd" .= id @String "100000000000000"
+    , "updateVoteThd"     .= id @String "1000000000000"
+
+    , "softforkRule" .=
+        Ae.object
+          [ "initThd"      .= id @String "900000000000000"
+          , "minThd"       .= id @String "600000000000000"
+          , "thdDecrement" .= id @String "50000000000000" ]
+
+    , "txFeePolicy" .=
+        Ae.object
+          [ "multiplier" .= id @String "43946000000"
+          , "summand"    .= id @String "155381000000000" ] ]
+
+-- |
+-- Generate the Byron genesis files.
+generateByronGenesis
+  :: FilePath
+  -> FilePath
+  -> Int
+  -> Int
+  -> Lovelace
+  -> Double
+  -> IO ()
+generateByronGenesis
+  byronDirectory
+  byronGenesisSpecPath
+  delegateAddresses
+  poorAddresses
+  (Lovelace totalBalance)
+  delegateShare = do
+
+  -- cardano-cli help says that the start time must be given in ‘POSIXSECONDS’
+  -- so we use getPOSIXTime rather than getCurrentTime.
+  startTime <- getPOSIXTime
+  let startTimeSeconds =
+        round @_ @Int64 $
+          nominalDiffTimeToSeconds startTime
+
+  -- The cardano-cli byron genesis genesis command
+  -- will generate the necessary configuration files.
+  callProcess
+    "cardano-cli"
+    [ "byron", "genesis", "genesis"
+
+      -- Input and output file paths for this command.
+    , "--protocol-parameters-file", byronGenesisSpecPath
+    , "--genesis-output-dir", byronDirectory
+
+      -- The time at which the first slot occurs.
+      -- This should be close to the current time,
+      -- because current slot is determined by current time.
+    , "--start-time", show startTimeSeconds
+
+      -- Identifies the Cardano network.
+    , "--protocol-magic", show protocolMagic
+
+      -- The security parameter of the Ouroboros protocol.
+      -- This is the maximum number of blocks that can be rolled back.
+      -- The example uses 10, so we shall use 10.
+    , "--k", "10"
+
+      -- How many addresses to generate.
+      -- Delegate addresses get delegateShare of totalBalance.
+      -- Poor addresses get the remaining share of totalBalance.
+      -- The balance is distributed equally across members of each group.
+    , "--n-delegate-addresses", show delegateAddresses
+    , "--n-poor-addresses", show poorAddresses
+    , "--total-balance", show totalBalance
+    , "--delegate-share", show delegateShare
+
+      -- AVVM stands for Ada Voucher Vending Machine.
+      -- It contains Ada presale balances.
+      -- We do not care, so they are zero.
+    , "--avvm-entry-count", "0"
+    , "--avvm-entry-balance", "0" ]
+
+--------------------------------------------------------------------------------
+-- Protocol magic
+
+-- |
+-- Identifies the Cardano network.
+protocolMagic :: Int
+protocolMagic = 0xDEADBEEF

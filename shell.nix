@@ -26,6 +26,8 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
+            nixpkgs.cardano-node        # Cardano node and utilities.
+            nixpkgs.tree                # Handy tool for dumping directories.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.

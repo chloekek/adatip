@@ -93,6 +93,7 @@ test-suite test-unit
         adatipd,
         aeson,
         base,
+        bytestring,
         containers,
         directory,
         filepath,
@@ -100,5 +101,7 @@ test-suite test-unit
         hspec,
         hspec-discover,
         hspec-hedgehog,
+        process,
         temporary,
-        text
+        text,
+        time
