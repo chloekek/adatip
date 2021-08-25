@@ -5,7 +5,9 @@ let
 
     # Configuration and overlays for Nixpkgs.
     config = { };
-    overlays = [ ];
+    overlays = [
+        (import ../cardano-node)
+    ];
 
 in
     import tarball { inherit config overlays; }

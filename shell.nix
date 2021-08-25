@@ -7,10 +7,12 @@ let
     # Note that Cabal files must still list the required dependencies.
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
+        p.aeson                         # Library for working with JSON.
         p.blaze-html                    # Library for generating HTML.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
+        p.temporary                     # Library for temporary files.
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];
@@ -24,6 +26,8 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
+            nixpkgs.cardano-node        # Cardano node and utilities.
+            nixpkgs.tree                # Handy tool for dumping directories.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.

@@ -12,6 +12,7 @@ common haskell-settings
         LambdaCase
         NumericUnderscores
         RecordWildCards
+        TypeApplications
         ViewPatterns
 
     default-language:
@@ -83,14 +84,24 @@ test-suite test-unit
         Spec.hs
 
     other-modules:
+        Adatipd.Cardano.Testnet
         Adatipd.CardanoSpec
         Adatipd.NicknameSpec
+        Adatipd.SubscriberSpec
 
     build-depends:
         adatipd,
+        aeson,
         base,
+        bytestring,
+        containers,
+        directory,
+        filepath,
         hedgehog,
         hspec,
         hspec-discover,
         hspec-hedgehog,
-        text
+        process,
+        temporary,
+        text,
+        time
