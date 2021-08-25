@@ -19,7 +19,7 @@ import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
 import System.Process (CreateProcess, callProcess, withCreateProcess)
 
-import qualified Data.Aeson as Ae (Value, encode, encodeFile, object)
+import qualified Data.Aeson as Ae (Value, decodeFileStrict, encode, encodeFile, object)
 import qualified Data.ByteString.Lazy as LBS (hPutStr)
 import qualified Data.Set as Set (delete, fromList, toList)
 import qualified System.Process as P (CreateProcess (..), proc)
@@ -53,6 +53,7 @@ setupTestnet :: FilePath -> [Word16] -> IO ()
 setupTestnet directory nodes = do
   writeTopologies directory (Set.fromList nodes)
   writeByronGenesis directory
+  writeShelleyGenesis directory
   writeConfiguration directory
 
 --------------------------------------------------------------------------------
@@ -253,6 +254,52 @@ generateByronGenesis
       -- We do not care, so they are zero.
     , "--avvm-entry-count", "0"
     , "--avvm-entry-balance", "0" ]
+
+--------------------------------------------------------------------------------
+-- Shelley genesis files
+
+-- |
+-- Write the Shelley genesis files.
+writeShelleyGenesis :: FilePath -> IO ()
+writeShelleyGenesis directory = do
+
+  -- Writing the Shelley genesis files happens in two phases.
+  -- First we let cardano-cli generate a default genesis spec (phase 1).
+  -- Then we patch the genesis spec by reading and writing it (phase 2).
+  -- Then we let cardano-cli regenerate the genesis files (phase 3).
+
+  let shelleyDirectory = directory </> "shelley"
+  generateShellyGenesisPhase1 shelleyDirectory
+  generateShellyGenesisPhase2 shelleyDirectory
+  generateShellyGenesisPhase3 shelleyDirectory
+
+generateShellyGenesisPhase1 :: FilePath -> IO ()
+generateShellyGenesisPhase1 shelleyDirectory =
+  callProcess
+    "cardano-cli"
+    [ "genesis", "create"
+    , "--genesis-dir", shelleyDirectory
+    , "--testnet-magic", show protocolMagic ]
+
+generateShellyGenesisPhase2 :: FilePath -> IO ()
+generateShellyGenesisPhase2 shelleyDirectory = do
+  let shelleyGenesisSpecPath = shelleyDirectory </> "genesis.spec.json"
+  Just spec <- Ae.decodeFileStrict @Ae.Value shelleyGenesisSpecPath
+  let spec' = patchShellyGenesisSpec spec
+  Ae.encodeFile @Ae.Value shelleyGenesisSpecPath spec'
+
+patchShellyGenesisSpec :: Ae.Value -> Ae.Value
+patchShellyGenesisSpec = id
+
+generateShellyGenesisPhase3 :: FilePath -> IO ()
+generateShellyGenesisPhase3 shelleyDirectory =
+  callProcess
+    "cardano-cli"
+    [ "genesis", "create"
+    , "--genesis-dir", shelleyDirectory
+    , "--testnet-magic", show protocolMagic
+    , "--gen-genesis-keys", "0" {- TODO: Pass number of BFT nodes. -}
+    , "--gen-utxo-keys", "0" {- TODO: Pass number of UTXO keys. -} ]
 
 --------------------------------------------------------------------------------
 -- Configuration file
