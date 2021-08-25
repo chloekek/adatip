@@ -1,12 +1,12 @@
 {
   inputs = {
-    cardano-node.url = "github:input-output-hk/cardano-node?tag=1.28.0";
+    cardanoNode.url = "github:input-output-hk/cardano-node?tag=1.28.0";
     nixpkgs.url = "github:nixos/nixpkgs?rev=bad3ccd099ebe9a8aa017bda8500ab02787d90aa";
     utils.url = "github:numtide/flake-utils";
   };
 
   outputs = {
-    cardano-node,
+    cardanoNode,
     nixpkgs,
     self,
     utils,
@@ -19,7 +19,8 @@
         rec {
           devShell = (import ./shell.nix) { nixpkgs = pkgs; };
           packages = {
-            cardano-node = cardano-node.apps.${system}.cardano-node;
+            cardano-node = cardanoNode.apps.${system}.cardano-node;
+            cardano-cli = cardanoNode.apps.${system}.cardano-cli;
           };
         }
     );
