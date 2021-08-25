@@ -6,7 +6,6 @@ module Adatipd.Cardano.Testnet
   ) where
 
 import Adatipd.Cardano (Lovelace (..))
-import Control.Exception (bracket)
 import Data.Aeson ((.=))
 import Data.Foldable (for_)
 import Data.Int (Int64)
@@ -18,11 +17,12 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath.Posix ((</>))
 import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
-import System.Process (callProcess)
+import System.Process (callProcess, withCreateProcess)
 
 import qualified Data.Aeson as Ae (Value, encode, encodeFile, object)
 import qualified Data.ByteString.Lazy as LBS (hPutStr)
 import qualified Data.Set as Set (delete, fromList, toList)
+import qualified System.Process as P (CreateProcess (..), proc)
 
 --------------------------------------------------------------------------------
 -- Testnet
@@ -43,22 +43,16 @@ data Testnet =
 withTestnet :: (Testnet -> IO a) -> IO a
 withTestnet action =
   withSystemTempDirectory "adatipd-cardano-testnet" $
-    \directory ->
-      bracket
-        (setupTestnet directory)
-        teardownTestnet
-        action
+    \directory -> do
+      let nodes = [3000, 3001, 3002, 3003]
+      setupTestnet directory nodes
+      withCardanoNodes directory nodes $
+        action Testnet { tDirectory = directory }
 
-setupTestnet :: FilePath -> IO Testnet
-setupTestnet directory = do
-  let nodes = Set.fromList [3000, 3001, 3002, 3003]
-  writeTopologies directory nodes
+setupTestnet :: FilePath -> [Word16] -> IO ()
+setupTestnet directory nodes = do
+  writeTopologies directory (Set.fromList nodes)
   writeByronGenesis directory
-  pure Testnet { tDirectory = directory }
-
-teardownTestnet :: Testnet -> IO ()
-teardownTestnet Testnet {..} =
-  pure ()
 
 --------------------------------------------------------------------------------
 -- Topology files
@@ -258,6 +252,32 @@ generateByronGenesis
       -- We do not care, so they are zero.
     , "--avvm-entry-count", "0"
     , "--avvm-entry-balance", "0" ]
+
+--------------------------------------------------------------------------------
+-- Running cardano-node
+
+withCardanoNodes :: FilePath -> [Word16] -> IO a -> IO a
+withCardanoNodes _ [] action = action
+withCardanoNodes directory (node : nodes) action =
+  withCardanoNode directory node $
+    withCardanoNodes directory nodes action
+
+withCardanoNode :: FilePath -> Word16 -> IO a -> IO a
+withCardanoNode directory port action =
+  let
+    createProcess =
+      P.proc
+        "cardano-node"
+        [ "run"
+        , "--topology", "node-3000/topology.json"
+        , "--database-path", "node-3000/db" ]
+    createProcess' =
+      createProcess
+        { P.cwd = Just directory }
+  in
+    withCreateProcess createProcess' $
+      \_stdin _stdout _stderr _pid ->
+        action
 
 --------------------------------------------------------------------------------
 -- Protocol magic

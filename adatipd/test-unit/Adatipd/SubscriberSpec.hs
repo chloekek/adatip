@@ -3,6 +3,7 @@ module Adatipd.SubscriberSpec
   ) where
 
 import Adatipd.Cardano.Testnet (Testnet (..), withTestnet)
+import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
 import Test.Hspec (Spec, it)
 
@@ -11,5 +12,6 @@ spec =
 
   it "withTestnet scratchpad" $
     withTestnet $
-      \Testnet {..} ->
+      \Testnet {..} -> do
         callProcess "tree" [ tDirectory ]
+        threadDelay 1_000_000
