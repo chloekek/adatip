@@ -17,7 +17,7 @@ import System.Directory (createDirectoryIfMissing)
 import System.FilePath.Posix ((</>))
 import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
-import System.Process (callProcess, withCreateProcess)
+import System.Process (CreateProcess, callProcess, withCreateProcess)
 
 import qualified Data.Aeson as Ae (Value, encode, encodeFile, object)
 import qualified Data.ByteString.Lazy as LBS (hPutStr)
@@ -265,16 +265,28 @@ withCardanoNodes directory (node : nodes) action =
 withCardanoNode :: FilePath -> Word16 -> IO a -> IO a
 withCardanoNode directory port action =
   let
+
+    -- Directory in which the node files are stored.
+    -- Relative to the directory argument.
+    nodeDirectory :: FilePath
+    nodeDirectory = "node-" <> show port
+
+    -- Start cardano-node with appropriate arguments.
+    createProcess :: CreateProcess
     createProcess =
       P.proc
         "cardano-node"
         [ "run"
-        , "--topology", "node-3000/topology.json"
-        , "--database-path", "node-3000/db" ]
+        , "--topology", nodeDirectory </> "topology.json"
+        , "--database-path", nodeDirectory </> "db" ]
+
+    -- Set some extra options for the process.
+    createProcess' :: CreateProcess
     createProcess' =
       createProcess
         { P.cwd = Just directory }
   in
+
     withCreateProcess createProcess' $
       \_stdin _stdout _stderr _pid ->
         action
