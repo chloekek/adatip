@@ -288,7 +288,10 @@ configuration =
       -- Taken from the IOG-provided configuration file.
     , "LastKnownBlockVersion-Major" .= id @Int 0
     , "LastKnownBlockVersion-Minor" .= id @Int 2
-    , "LastKnownBlockVersion-Alt"   .= id @Int 0 ]
+    , "LastKnownBlockVersion-Alt"   .= id @Int 0
+
+      -- We do not need metrics in our use case.
+    , "TurnOnLogMetrics" .= False ]
 
 --------------------------------------------------------------------------------
 -- Running cardano-node
