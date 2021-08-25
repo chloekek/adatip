@@ -53,6 +53,7 @@ setupTestnet :: FilePath -> [Word16] -> IO ()
 setupTestnet directory nodes = do
   writeTopologies directory (Set.fromList nodes)
   writeByronGenesis directory
+  writeConfiguration directory
 
 --------------------------------------------------------------------------------
 -- Topology files
@@ -254,6 +255,25 @@ generateByronGenesis
     , "--avvm-entry-balance", "0" ]
 
 --------------------------------------------------------------------------------
+-- Configuration file
+
+-- |
+-- Write the configuration.yaml file.
+-- We write JSON, but YAML is a superset of JSON.
+writeConfiguration :: FilePath -> IO ()
+writeConfiguration directory = do
+  let configurationPath = directory </> "configuration.yaml"
+  Ae.encodeFile @Ae.Value configurationPath configuration
+
+-- |
+-- Configuration for cardano-node.
+configuration :: Ae.Value
+configuration =
+  Ae.object
+    [
+    ]
+
+--------------------------------------------------------------------------------
 -- Running cardano-node
 
 withCardanoNodes :: FilePath -> [Word16] -> IO a -> IO a
@@ -277,6 +297,7 @@ withCardanoNode directory port action =
       P.proc
         "cardano-node"
         [ "run"
+        , "--config", "configuration.yaml"
         , "--topology", nodeDirectory </> "topology.json"
         , "--database-path", nodeDirectory </> "db" ]
 
