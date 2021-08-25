@@ -7,10 +7,12 @@ let
     # Note that Cabal files must still list the required dependencies.
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
+        p.aeson                         # Library for working with JSON.
         p.blaze-html                    # Library for generating HTML.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
+        p.temporary                     # Library for temporary files.
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];
