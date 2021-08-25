@@ -270,18 +270,40 @@ writeConfiguration directory = do
 configuration :: Ae.Value
 configuration =
   Ae.object
-    [
-    ]
+    [ -- The Cardano protocol contains all eras.
+      -- This is what we want because we will
+      -- hardfork through all of them.
+      "Protocol" .= id @String "Cardano"
+
+    , -- These files are written by the other parts of this module.
+      "ByronGenesisFile"   .= id @String "byron/genesis.json"
+    , "ShelleyGenesisFile" .= id @String "shelley/genesis.json"
+    , "AlonzoGenesisFile"  .= id @String "shelley/genesis.alonzo.json"
+
+      -- This allows us to do special testnet-specific things.
+    , "RequiresNetworkMagic" .= id @String "RequiresMagic"
+
+      -- This number gets used by block producing nodes
+      -- as part of the system for agreeing on protocol updates.
+      -- Taken from the IOG-provided configuration file.
+    , "LastKnownBlockVersion-Major" .= id @Int 0
+    , "LastKnownBlockVersion-Minor" .= id @Int 2
+    , "LastKnownBlockVersion-Alt"   .= id @Int 0 ]
 
 --------------------------------------------------------------------------------
 -- Running cardano-node
 
+-- |
+-- Run an action with multiple instances of cardano-node.
+-- One instance of cardano-node is started for each given port number.
 withCardanoNodes :: FilePath -> [Word16] -> IO a -> IO a
 withCardanoNodes _ [] action = action
 withCardanoNodes directory (node : nodes) action =
   withCardanoNode directory node $
     withCardanoNodes directory nodes action
 
+-- |
+-- Run an action with an instance of cardano-node.
 withCardanoNode :: FilePath -> Word16 -> IO a -> IO a
 withCardanoNode directory port action =
   let
@@ -292,6 +314,8 @@ withCardanoNode directory port action =
     nodeDirectory = "node-" <> show port
 
     -- Start cardano-node with appropriate arguments.
+    -- Remaining configuration is read from the files
+    -- that we write in the other parts of this module.
     createProcess :: CreateProcess
     createProcess =
       P.proc
