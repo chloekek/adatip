@@ -146,26 +146,51 @@ writeByronGenesis directory =
 byronGenesisSpec :: Ae.Value
 byronGenesisSpec =
   Ae.object
-    [ -- TODO: Clearly document what each parameter does.
-      "heavyDelThd"       .= id @String "300000000000"
-    , "maxBlockSize"      .= id @String "2000000"
-    , "maxTxSize"         .= id @String "4096"
-    , "maxHeaderSize"     .= id @String "2000000"
-    , "maxProposalSize"   .= id @String "700"
-    , "mpcThd"            .= id @String "20000000000000"
-    , "scriptVersion"     .= id @Int 0
-    , "slotDuration"      .= id @String "1000"
+    [ -- Heavyweight delegation threshold.
+      -- TODO: Update comment to explain heavyweight delegation.
+      "heavyDelThd" .= id @String "300000000000"
+
+      -- Maximum number of bytes in a block/header/transaction.
+    , "maxBlockSize"  .= id @String "2000000"
+    , "maxHeaderSize" .= id @String "2000000"
+    , "maxTxSize"     .= id @String "4096"
+
+      -- Maximum number of bytes in an update proposal.
+      -- Update proposals are about upgrading the protocol.
+    , "maxProposalSize" .= id @String "700"
+
+      -- Plutus smart contract language version,
+      -- but there are no smart contracts in the Byron era,
+      -- so while this parameter is mandatory it is ignored.
+    , "scriptVersion" .= id @Int 0
+
+      -- How many milliseconds a slot takes.
+    , "slotDuration" .= id @String "1000"
+
+      -- The documentation is unclear about this.
+      -- It has something to do with OBFT.
     , "unlockStakeEpoch"  .= id @String "18446744073709551615"
-    , "updateImplicit"    .= id @String "10000"
+
+      -- No longer used after OBFT era.
+    , "mpcThd" .= id @String "20000000000000"
+
+      -- The number of slots a proposal has to gather a majority of votes.
+      -- If a majority of votes has not been reached before this period,
+      -- then the proposal is rejected.
+    , "updateImplicit" .= id @String "10000"
+
+      -- Stake threshold for creating/voting a proposal.
     , "updateProposalThd" .= id @String "100000000000000"
     , "updateVoteThd"     .= id @String "1000000000000"
 
+      -- Stake threshold for participating in softfork resolution.
     , "softforkRule" .=
         Ae.object
           [ "initThd"      .= id @String "900000000000000"
           , "minThd"       .= id @String "600000000000000"
           , "thdDecrement" .= id @String "50000000000000" ]
 
+      -- Transaction fee = summand + multiplier × bytes.
     , "txFeePolicy" .=
         Ae.object
           [ "multiplier" .= id @String "43946000000"
