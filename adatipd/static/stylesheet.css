@@ -1,4 +1,58 @@
 body
 {
-    color: green;
+    background-color: white;
+    color: black;
+    font-family: "Roboto", sans-serif;
+    margin: 0;
+}
+
+body > .header,
+body > .content,
+body > .footer
+{
+    margin: 0 auto;
+    padding: 1rem 0;
+    width: 960px;
+}
+
+body > .header
+{
+    border-bottom: solid 1px gray;
+}
+
+body > .footer
+{
+    border-top: solid 1px gray;
+    color: gray;
+}
+
+.tip-suggestion > details > summary
+{
+    cursor: pointer;
+}
+
+.tip-suggestion > details > summary > header
+{
+    display: inline;
+}
+
+.tip-suggestion > details > summary > header > .amount
+{
+    background-color: #001aa5;
+    border-radius: 1em;
+    color: white;
+    display: inline;
+    padding: 0 0.5em;
+}
+
+.tip-suggestion > details > summary > header > .title
+{
+    display: inline;
+    font-size: 1rem;
+    margin-left: 0.5em;
+}
+
+.tip-suggestion > details > .address
+{
+    font-family: monospace;
 }

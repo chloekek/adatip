@@ -121,10 +121,10 @@ renderTipSuggestion TipSuggestion {..} = do
 
       HH.summary $
         HH.header $ do
-          HH.h1 ! HA.class_ "title" $
-            HB.text tsTitle
           HH.div ! HA.class_ "amount" $
             HB.string (formatAda tsAmount)
+          HH.h1 ! HA.class_ "title" $
+            HB.text tsTitle
 
       case qrImagePng of
         Nothing ->
