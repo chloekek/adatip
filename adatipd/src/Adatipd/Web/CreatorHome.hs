@@ -11,6 +11,7 @@ module Adatipd.Web.CreatorHome
   , TipSuggestion (..)
   , TotalPosts (..)
   , Post (..)
+  , Attachment (..)
   ) where
 
 import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatBech32)
@@ -18,7 +19,7 @@ import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.Layout (renderLayout)
 import Adatipd.Web.NotFound (handleNotFound)
-import Data.Foldable (traverse_)
+import Data.Foldable (for_, traverse_)
 import Data.Int (Int64)
 import Data.Text (Text)
 import Data.Vector (Vector)
@@ -29,7 +30,7 @@ import qualified Adatipd.Nickname as Nickname (format)
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Codec.QRCode as Qr
 import qualified Codec.QRCode.JuicyPixels as Qr
-import qualified Data.Vector as Vector (empty, fromList)
+import qualified Data.Vector as Vector (fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -79,9 +80,16 @@ fetchCreatorHome nickname =
                   (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
                            \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
                            \6pfj6qu4fj8dmr4ts6ednhv") ]
-        , chTotalPosts = Vector.empty
-        , chMostRecentPosts = Vector.empty
-        }
+        , chTotalPosts =
+            Vector.fromList
+              [ TotalPosts "Henk Tier 1" 100
+              , TotalPosts "Henk Tier 2"   5 ]
+        , chMostRecentPosts =
+            Vector.fromList
+              [ Post "Vlog Friday #42!" "Alweer een nieuwe vlog."
+                  (Vector.fromList [ VideoAttachment ])
+              , Post "Programming Podcast #1" "Vandaag praten we over Haskell."
+                  (Vector.fromList [ AudioAttachment ]) ] }
 
 -- |
 -- Render a creator’s home page as HTML.
@@ -96,6 +104,10 @@ renderCreatorHome options CreatorHome {..} =
     HH.section $ do
       HH.h1 "Tip suggestions"
       traverse_ renderTipSuggestion chTipSuggestions
+
+    HH.section $ do
+      HH.h1 "Exclusive content"
+      traverse_ renderPost chMostRecentPosts
 
 -- |
 -- Render a tip suggestion, with nice QR code.
@@ -138,6 +150,27 @@ renderTipSuggestion TipSuggestion {..} = do
       HH.section ! HA.class_ "address" $
         HB.text formattedAddress
 
+-- |
+-- Render a single post.
+renderPost :: Post -> Markup
+renderPost Post {..} =
+
+  HH.article ! HA.class_ "post" $ do
+
+    HH.header $ do
+      HH.h1 ! HA.class_ "title" $
+        HB.text pTitle
+
+    HH.section ! HA.class_ "content" $
+      HH.p $ HB.text pContent
+
+    HH.section ! HA.class_ "attachments" $
+      for_ pAttachments $
+        \case
+          ImageAttachment -> HH.p "(todo: image attachment)"
+          AudioAttachment -> HH.p "(todo: audio attachment)"
+          VideoAttachment -> HH.p "(todo: video attachment)"
+
 --------------------------------------------------------------------------------
 -- Data types
 
@@ -175,8 +208,10 @@ data TotalPosts =
 data Post =
   Post
     { pTitle :: Text
-    , pSummary :: Text
-    , pContent :: Vector Media
-    }
+    , pContent :: Text
+    , pAttachments :: Vector Attachment }
 
-data Media
+data Attachment
+  = ImageAttachment -- TODO: This ctor should contain a URL or UUID or smth.
+  | AudioAttachment -- TODO: This ctor should contain a URL or UUID or smth.
+  | VideoAttachment -- TODO: This ctor should contain a URL or UUID or smth.
