@@ -1,7 +1,7 @@
 module Adatipd.Cardano
   ( -- * Addresses
     Address (..)
-  , formatAddress
+  , formatBech32
 
     -- * Amounts
   , Lovelace (..)
@@ -19,8 +19,8 @@ import Data.Text (Text)
 newtype Address =
   Address Text
 
-formatAddress :: Address -> Text
-formatAddress (Address bech32) = bech32
+formatBech32 :: Address -> Text
+formatBech32 (Address bech32) = bech32
 
 --------------------------------------------------------------------------------
 -- Amounts
