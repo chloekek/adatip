@@ -25,6 +25,8 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
+            nixpkgs.hivemind            # Process supervisor for dev env.
+            nixpkgs.nginx               # Web server and HTTP proxy.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
