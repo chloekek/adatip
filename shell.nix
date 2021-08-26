@@ -11,6 +11,7 @@ let
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
+        p.qrcode-juicypixels            # Library for rendering QR codes.
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];

@@ -46,6 +46,8 @@ library
         blaze-markup,
         http-types,
         optparse-applicative,
+        qrcode-core,
+        qrcode-juicypixels,
         scientific,
         text,
         vector,

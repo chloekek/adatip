@@ -13,23 +13,26 @@ module Adatipd.Web.CreatorHome
   , Post (..)
   ) where
 
-import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatAddress)
+import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatBech32)
 import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.Layout (renderLayout)
 import Adatipd.Web.NotFound (handleNotFound)
-import Data.Foldable (for_)
+import Data.Foldable (traverse_)
 import Data.Int (Int64)
 import Data.Text (Text)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
-import Text.Blaze (Markup)
+import Text.Blaze (Markup, (!))
 
 import qualified Adatipd.Nickname as Nickname (format)
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
+import qualified Codec.QRCode as Qr
+import qualified Codec.QRCode.JuicyPixels as Qr
 import qualified Data.Vector as Vector (empty, fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
+import qualified Text.Blaze.Html5.Attributes as HA
 
 --------------------------------------------------------------------------------
 -- Interface
@@ -64,8 +67,18 @@ fetchCreatorHome nickname =
         , chBiography = "Ik ben Henk de Vries!"
         , chTipSuggestions =
             Vector.fromList
-              [ TipSuggestion "Koffie" (Lovelace 1000000) (Address "addr1x")
-              , TipSuggestion "Chips" (Lovelace 2000000) (Address "addr1y") ]
+              [ TipSuggestion
+                  "Koffie"
+                  (Lovelace 1000000)
+                  (Address "addr1qy7h4lxjsn7cz95gen79upe3lls6wlqn35m\
+                           \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
+                           \6pfj6qu4fj8dmr4tsa3g6qz")
+              , TipSuggestion
+                  "Chips"
+                  (Lovelace 2000000)
+                  (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
+                           \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
+                           \6pfj6qu4fj8dmr4ts6ednhv") ]
         , chTotalPosts = Vector.empty
         , chMostRecentPosts = Vector.empty
         }
@@ -75,16 +88,55 @@ fetchCreatorHome nickname =
 renderCreatorHome :: Options -> CreatorHome -> Markup
 renderCreatorHome options CreatorHome {..} =
   renderLayout options chName $ do
-    HH.h1 $ HB.text chName
-    HH.p $ HB.text chBiography
-    HH.table $ do
-      HH.tbody $ do
-        for_ chTipSuggestions $
-          \TipSuggestion {..} ->
-            HH.tr $ do
-              HH.td $ HB.text tsTitle
-              HH.td $ HB.string (formatAda tsAmount)
-              HH.td $ HB.text (formatAddress tsAddress)
+
+    HH.header $ do
+      HH.h1 $ HB.text chName
+      HH.p $ HB.text chBiography
+
+    HH.section $ do
+      HH.h1 "Tip suggestions"
+      traverse_ renderTipSuggestion chTipSuggestions
+
+-- |
+-- Render a tip suggestion, with nice QR code.
+-- The QR code and address are hidden until
+-- the user interacts with the tip suggestion.
+renderTipSuggestion :: TipSuggestion -> Markup
+renderTipSuggestion TipSuggestion {..} = do
+
+  -- This is the standard format for Cardano addresses.
+  -- All wallets with QR code functionality should support it.
+  let formattedAddress =
+        formatBech32 tsAddress
+
+  -- High error connection leads to an enormous QR code.
+  -- Medium should be good enough? I don’t really know.
+  let qrOptions = Qr.defaultQRCodeOptions Qr.M
+      qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 formattedAddress
+      qrImagePng = Qr.toPngDataUrlT 4 8 <$> qrImage
+
+  HH.article ! HA.class_ "tip-suggestion" $
+
+    HH.details $ do
+
+      HH.summary $
+        HH.header $ do
+          HH.h1 ! HA.class_ "title" $
+            HB.text tsTitle
+          HH.div ! HA.class_ "amount" $
+            HB.string (formatAda tsAmount)
+
+      case qrImagePng of
+        Nothing ->
+          HB.stringComment
+            "Unfortunately no QR code could \
+            \be generated for this address."
+        Just qrImagePng' ->
+          HH.section ! HA.class_ "qr-code" $
+            HH.img ! HA.src (HB.lazyTextValue qrImagePng')
+
+      HH.section ! HA.class_ "address" $
+        HB.text formattedAddress
 
 --------------------------------------------------------------------------------
 -- Data types
