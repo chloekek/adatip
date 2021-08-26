@@ -18,11 +18,23 @@ import qualified Text.Blaze.Html5.Attributes as HA
 -- The options are used to decorate the page according to configuration.
 renderLayout :: Options -> Text -> Markup -> Markup
 renderLayout Options {..} title content = do
+
   HH.docType
+
   HH.meta ! HA.charset "utf-8"
+
   HH.link ! HA.rel "stylesheet" ! HA.href "/static/stylesheet.css"
+
   HH.title $ do
     HB.text title
     HB.text " — "
     HB.text oInstanceTitle
-  content
+
+  HH.header ! HA.class_ "header" $
+    HH.a ! HA.href "/" $ HB.text oInstanceTitle
+
+  HH.section ! HA.class_ "content" $
+    content
+
+  HH.footer ! HA.class_ "footer" $
+    HB.text oInstanceTitle
