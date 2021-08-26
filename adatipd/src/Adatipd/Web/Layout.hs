@@ -20,6 +20,7 @@ renderLayout :: Options -> Text -> Markup -> Markup
 renderLayout Options {..} title content = do
   HH.docType
   HH.meta ! HA.charset "utf-8"
+  HH.link ! HA.rel "stylesheet" ! HA.href "/static/stylesheet.css"
   HH.title $ do
     HB.text title
     HB.text " — "
