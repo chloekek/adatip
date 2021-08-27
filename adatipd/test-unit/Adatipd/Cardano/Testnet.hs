@@ -3,7 +3,6 @@
 module Adatipd.Cardano.Testnet
   ( Testnet (..)
   , withTestnet
-  , protocolMagic
   ) where
 
 import Adatipd.Cardano (Lovelace (..))
@@ -34,7 +33,8 @@ import qualified System.Process as P (CreateProcess (..), proc)
 -- Information about a testnet created by 'withTestnet'.
 data Testnet =
   Testnet
-    { tDirectory :: FilePath }
+    { tDirectory :: FilePath
+    , tProtocolMagic :: Int32 }
 
 -- |
 -- Start up a new Cardano testnet.
@@ -50,7 +50,10 @@ withTestnet action =
       let nodes = [3000, 3001, 3002, 3003]
       setupTestnet directory nodes
       withCardanoNodes directory nodes $
-        action Testnet { tDirectory = directory }
+        action
+          Testnet
+            { tDirectory = directory
+            , tProtocolMagic = protocolMagic }
 
 setupTestnet :: FilePath -> [Word16] -> IO ()
 setupTestnet directory nodes = do

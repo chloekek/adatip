@@ -2,7 +2,7 @@ module Adatipd.SubscriberSpec
   ( spec
   ) where
 
-import Adatipd.Cardano.Testnet (Testnet (..), protocolMagic, withTestnet)
+import Adatipd.Cardano.Testnet (Testnet (..), withTestnet)
 import Control.Concurrent (threadDelay)
 import System.Process (callProcess)
 import Test.Hspec (Spec, it)
@@ -21,4 +21,4 @@ spec =
           [ "CARDANO_NODE_SOCKET_PATH=" <> tDirectory <> "/node-3000/socket"
           , "cardano-cli", "query", "protocol-parameters"
           , "--cardano-mode"
-          , "--testnet-magic", show protocolMagic ]
+          , "--testnet-magic", show tProtocolMagic ]
