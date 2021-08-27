@@ -363,18 +363,28 @@ configuration =
     , "LastKnownBlockVersion-Minor" .= id @Int 2
     , "LastKnownBlockVersion-Alt"   .= id @Int 0
 
+      -- Configure nodes to update to latest protocol immediately.
+    , "TestShelleyHardForkAtEpoch" .= id @Int 0
+    , "TestAllegraHardForkAtEpoch" .= id @Int 0
+    , "TestMaryHardForkAtEpoch"    .= id @Int 0
+    , "TestAlonzoHardForkAtEpoch"  .= id @Int 0
+    , "TestEnableDevelopmentHardForkEras"     .= True
+    , "TestEnableDevelopmentNetworkProtocols" .= True
+
       -- Logging configuration.
       -- This isn’t very interesting.
     , "TurnOnLogging"    .= False
     , "TurnOnLogMetrics" .= False
     , "minSeverity"      .= id @String "Info"
     , "TracingVerbosity" .= id @String "NormalVerbosity"
-    , "setupBackends"    .= id @String "KatipBK"
+    , "setupBackends"    .= id @[String] ["KatipBK"]
+    , "defaultBackends"  .= id @[String] ["KatipBK"]
     , "setupScribes"     .=
         [ Ae.object
             [ "scKind"   .= id @String "StdoutSK"
             , "scName"   .= id @String "stdout"
-            , "scFormat" .= id @String "ScText" ] ] ]
+            , "scFormat" .= id @String "ScText" ] ]
+    , "defaultScribes"   .= id @[[String]] [["StdoutSK", "stdout"]] ]
 
 --------------------------------------------------------------------------------
 -- Running cardano-node
