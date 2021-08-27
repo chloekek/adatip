@@ -27,10 +27,13 @@ import Network.HTTP.Types.Status (status200)
 import Text.Blaze (Markup, (!))
 
 import qualified Adatipd.Nickname as Nickname (format)
+import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Codec.QRCode as Qr
 import qualified Codec.QRCode.JuicyPixels as Qr
 import qualified Data.Vector as Vector (fromList)
+import qualified Hasql.Decoders as SqlDec
+import qualified Hasql.Encoders as SqlEnc
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -41,9 +44,9 @@ import qualified Text.Blaze.Html5.Attributes as HA
 -- |
 -- Fetch the creator with the given name and display their home page.
 -- The data types in this module tell you what that looks like.
-handleCreatorHome :: Options -> Nickname -> Wai.Application
-handleCreatorHome options nickname request writeResponse =
-  fetchCreatorHome nickname >>= \case
+handleCreatorHome :: Options -> Sql.Connection -> Nickname -> Wai.Application
+handleCreatorHome options sqlConn nickname request writeResponse =
+  fetchCreatorHome sqlConn nickname >>= \case
     Nothing ->
       handleNotFound options request writeResponse
     Just creatorHome ->
@@ -54,18 +57,31 @@ handleCreatorHome options nickname request writeResponse =
 -- |
 -- Fetch the data to display for a creator with a given nickname.
 -- If the creator does not exist, this function returns 'Nothing'.
-fetchCreatorHome :: Nickname -> IO (Maybe CreatorHome)
-fetchCreatorHome nickname =
+fetchCreatorHome :: Sql.Connection -> Nickname -> IO (Maybe CreatorHome)
+fetchCreatorHome sqlConn nickname = do
+
+  -- This is just to demo SQL connectivity for now.
+  -- In the future we will get actual user info from the database.
+  biography <-
+    Sql.runSession sqlConn $
+      Sql.statement () $
+        Sql.Statement
+          "SELECT version()"
+          SqlEnc.noParams
+          (SqlDec.singleRow (SqlDec.column (SqlDec.nonNullable SqlDec.text)))
+          False
+
   if Nickname.format nickname == "henkdevries"
-    then pure (Just henkdevries)
+    then pure (Just (henkdevries biography))
     else pure Nothing
+
   where
-    henkdevries :: CreatorHome
-    henkdevries =
+    henkdevries :: Text -> CreatorHome
+    henkdevries biography =
       CreatorHome
         { chNickname = nickname
         , chName = "Henk de Vries"
-        , chBiography = "Ik ben Henk de Vries!"
+        , chBiography = biography
         , chTipSuggestions =
             Vector.fromList
               [ TipSuggestion

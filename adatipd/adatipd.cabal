@@ -8,6 +8,7 @@ common haskell-settings
     -- Only list extensions that do not impact code that doesn’t need them.
     -- Other extensions should be explicitly enabled with LANGUAGE pragmas.
     default-extensions:
+        DeriveAnyClass
         DerivingStrategies
         LambdaCase
         NumericUnderscores
@@ -34,6 +35,7 @@ library
         Adatipd.Cardano
         Adatipd.Nickname
         Adatipd.Options
+        Adatipd.Sql
         Adatipd.WaiUtil
         Adatipd.Web
         Adatipd.Web.CreatorHome
@@ -44,6 +46,8 @@ library
         base,
         blaze-html,
         blaze-markup,
+        bytestring,
+        hasql,
         http-types,
         optparse-applicative,
         qrcode-core,

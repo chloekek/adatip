@@ -12,6 +12,7 @@ if ! [[ -e "$pgdata" ]]; then
     initdb                        \
         --pgdata="$pgdata"        \
         --locale=C                \
+        --encoding=UTF8           \
         --username=postgres       \
         --pwfile=<(echo postgres)
 

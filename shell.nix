@@ -8,6 +8,7 @@ let
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
         p.blaze-html                    # Library for generating HTML.
+        p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
