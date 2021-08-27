@@ -359,9 +359,8 @@ configuration =
 
       -- This number gets used by block producing nodes
       -- as part of the system for agreeing on protocol updates.
-      -- Taken from the IOG-provided configuration file.
-    , "LastKnownBlockVersion-Major" .= id @Int 0
-    , "LastKnownBlockVersion-Minor" .= id @Int 2
+    , "LastKnownBlockVersion-Major" .= id @Int 5
+    , "LastKnownBlockVersion-Minor" .= id @Int 0
     , "LastKnownBlockVersion-Alt"   .= id @Int 0
 
       -- Configure nodes to update to latest protocol immediately.
@@ -374,7 +373,7 @@ configuration =
 
       -- Logging configuration.
       -- This isn’t very interesting.
-    , "TurnOnLogging"    .= False
+    , "TurnOnLogging"    .= True
     , "TurnOnLogMetrics" .= False
     , "minSeverity"      .= id @String "Info"
     , "TracingVerbosity" .= id @String "NormalVerbosity"
@@ -385,7 +384,8 @@ configuration =
             [ "scKind"   .= id @String "StdoutSK"
             , "scName"   .= id @String "stdout"
             , "scFormat" .= id @String "ScText" ] ]
-    , "defaultScribes"   .= id @[[String]] [["StdoutSK", "stdout"]] ]
+    , "defaultScribes"   .= id @[[String]] [["StdoutSK", "stdout"]]
+    , "options"          .= Ae.object [ ] ]
 
 --------------------------------------------------------------------------------
 -- Running cardano-node
