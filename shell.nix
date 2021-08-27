@@ -8,6 +8,7 @@ let
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
         p.blaze-html                    # Library for generating HTML.
+        p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
@@ -29,6 +30,7 @@ in
             nixpkgs.entr                # Autoreload tool, to rebuild on change.
             nixpkgs.gitMinimal          # To list files for entr.
             nixpkgs.nginx               # Web server and HTTP proxy.
+            nixpkgs.postgresql_13       # Relational database server.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
