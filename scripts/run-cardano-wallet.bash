@@ -11,7 +11,7 @@ export CARDANO_NETWORK="${CARDANO_NETWORK:-"testnet"}";
 if [ $CARDANO_NETWORK = "mainnet" ]; then
   args=("--mainnet")
 else
-  args=("--testnet" "$CARDANO_CONFIGURATION/cardano/testnet-byron-genesis.json")
+  args=("--testnet" "$CARDANO_CONFIGURATION/testnet-byron-genesis.json")
 fi
 
 # Note: the database can grow to several gigabytes. If you like to keep it on a

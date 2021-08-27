@@ -11,7 +11,7 @@ export CARDANO_NETWORK="${CARDANO_NETWORK:-"testnet"}";
 # Note: the database can grow to several gigabytes. If you like to keep it on a
 # separate disk, make state/cardano-* a symlink to the desired location.
 exec cardano-node run \
-  --config        "$CARDANO_CONFIGURATION/cardano/$CARDANO_NETWORK-config.json" \
-  --topology      "$CARDANO_CONFIGURATION/cardano/$CARDANO_NETWORK-topology.json" \
+  --config        "$CARDANO_CONFIGURATION/$CARDANO_NETWORK-config.json" \
+  --topology      "$CARDANO_CONFIGURATION/$CARDANO_NETWORK-topology.json" \
   --database-path state/cardano-$CARDANO_NETWORK \
   --socket-path   state/cardano-node.socket

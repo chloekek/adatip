@@ -14,7 +14,7 @@ let
     let
       srcFile = fetchConfig { inherit name sha256; };
     in
-      "cp ${srcFile} $out/lib/configuration/cardano/${name}";
+      "cp ${srcFile} $out/${name}";
 
   mkConfig = { name, configSha256, topologySha256, byronSha256, shelleySha256, alonzoSha256 }:
     builtins.concatStringsSep "\n" [
@@ -44,30 +44,13 @@ let
   };
 in
   nixpkgs.stdenv.mkDerivation {
-    name = "cardano-node";
-    version = "1.27.0-linux";
-
-    src = builtins.fetchTarball {
-      url = "https://hydra.iohk.io/build/6263009/download/1/cardano-node-1.27.0-linux.tar.gz";
-      sha256 = "06kw6jnddvf5c8dvvlf748igyr8m1f772vz7hl2yfhd7k5d2jn89";
-    };
+    name = "cardano-config";
+    version = "2021-08-27";
 
     phases = [ "installPhase" ];
 
     installPhase = ''
-      # Copy all files in the root of the archive, the binaries.
-      mkdir -p $out/bin
-      find $src -maxdepth 1 -type f -exec cp '{}' $out/bin ';'
-
-      # Copy the network configuration to the lib output.
-      mkdir -p $out/lib
-      cp -r $src/configuration $out/lib
-
-      # The configuration files included in the binaries do not include config
-      # files for testnet. (They do include many other config files, whose
-      # purpose is unclear to me at this point.) So instead of using those, we
-      # copy in the config files that we downloaded above.
-      chmod --recursive +w $out/lib/configuration/cardano
+      mkdir -p $out
       ${mainnetConfig}
       ${testnetConfig}
     '';
