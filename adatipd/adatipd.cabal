@@ -104,4 +104,5 @@ test-suite test-unit
         process,
         temporary,
         text,
-        time
+        time,
+        unordered-containers

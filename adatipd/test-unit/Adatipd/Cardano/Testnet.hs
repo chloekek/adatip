@@ -8,6 +8,7 @@ module Adatipd.Cardano.Testnet
 import Adatipd.Cardano (Lovelace (..))
 import Data.Aeson ((.=))
 import Data.Foldable (for_)
+import Data.Function ((&))
 import Data.Int (Int64)
 import Data.Set (Set)
 import Data.Time.Clock (nominalDiffTimeToSeconds)
@@ -19,8 +20,9 @@ import System.IO (hClose)
 import System.IO.Temp (withSystemTempDirectory, withSystemTempFile)
 import System.Process (CreateProcess, callProcess, withCreateProcess)
 
-import qualified Data.Aeson as Ae (Value, decodeFileStrict, encode, encodeFile, object)
+import qualified Data.Aeson as Ae
 import qualified Data.ByteString.Lazy as LBS (hPutStr)
+import qualified Data.HashMap.Strict as HM (insert)
 import qualified Data.Set as Set (delete, fromList, toList)
 import qualified System.Process as P (CreateProcess (..), proc)
 
@@ -289,7 +291,31 @@ generateShellyGenesisPhase2 shelleyDirectory = do
   Ae.encodeFile @Ae.Value shelleyGenesisSpecPath spec'
 
 patchShellyGenesisSpec :: Ae.Value -> Ae.Value
-patchShellyGenesisSpec = id
+patchShellyGenesisSpec (Ae.Object original) =
+  Ae.Object $
+    original
+
+    -- Total amount of Lovelace in the system.
+    & HM.insert "maxLovelaceSupply" (Ae.Number 1_000_000_000_000)
+
+    -- The security parameter of the Ouroboros protocol.
+    -- This is the maximum number of blocks that can be rolled back.
+    -- The example uses 10, so we shall use 10.
+    & HM.insert "securityParam" (Ae.Number 10)
+
+    -- Number of nodes that need to agree to initiate protocol update.
+    -- Set this to a low number as we have very few nodes.
+    & HM.insert "updateQuorum" (Ae.Number 2)
+
+    -- In our case Shelley is protocol version 0.2,
+    -- as we first go through Byron 1 and Byron 2.
+    & HM.insert "protocolVersion" (
+        Ae.object
+          [ "minor" .= id @Int 0
+          , "major" .= id @Int 2 ]
+    )
+patchShellyGenesisSpec _ =
+  error "Shelley genesis spec should be a JSON object"
 
 generateShellyGenesisPhase3 :: FilePath -> IO ()
 generateShellyGenesisPhase3 shelleyDirectory =
