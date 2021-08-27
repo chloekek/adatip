@@ -15,7 +15,7 @@ spec =
       \Testnet {..} -> do
         callProcess "tree" [ tDirectory ]
         callProcess "cat" [ tDirectory <> "/shelley/genesis.spec.json" ]
-        threadDelay 10_000_000
+        threadDelay 5_000_000
         callProcess
           "env"
           [ "CARDANO_NODE_SOCKET_PATH=" <> tDirectory <> "/node-3000/socket"

@@ -421,6 +421,7 @@ withCardanoNode directory port action =
       P.proc
         "cardano-node"
         [ "run"
+        , "--port", show port
         , "--config", "configuration.yaml"
         , "--topology", nodeDirectory </> "topology.json"
         , "--database-path", nodeDirectory </> "db"
