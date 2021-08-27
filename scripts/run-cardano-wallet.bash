@@ -14,9 +14,7 @@ else
   args=("--testnet" "$CARDANO_CONFIGURATION/testnet-byron-genesis.json")
 fi
 
-# Note: the database can grow to several gigabytes. If you like to keep it on a
-# separate disk, make state/cardano-* a symlink to the desired location.
 exec cardano-wallet serve \
   --node-socket state/cardano-node.socket \
-  --database    state/cardano-wallet-$CARDANO_NETWORK \
+  --database "state/cardano-wallet-$CARDANO_NETWORK" \
   ${args[@]}

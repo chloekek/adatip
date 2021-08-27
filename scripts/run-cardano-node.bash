@@ -13,5 +13,5 @@ export CARDANO_NETWORK="${CARDANO_NETWORK:-"testnet"}";
 exec cardano-node run \
   --config        "$CARDANO_CONFIGURATION/$CARDANO_NETWORK-config.json" \
   --topology      "$CARDANO_CONFIGURATION/$CARDANO_NETWORK-topology.json" \
-  --database-path state/cardano-$CARDANO_NETWORK \
+  --database-path "state/cardano-$CARDANO_NETWORK" \
   --socket-path   state/cardano-node.socket
