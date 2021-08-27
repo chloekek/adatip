@@ -6,4 +6,7 @@ set -efuo pipefail
 
 # -c: Path to configuration file.
 # -p: Prefix path, used for state.
-exec nginx -c "$PWD"/scripts/nginx.conf -p state/nginx
+# -e: Log errors to this file. We can also set it in nginx.conf, but nginx will
+#     try to open it’s compile-time default path /var/log/nginx/error.log before
+#     it reads the config file, and emit an alert, so we set it here instead.
+exec nginx -c "$PWD"/scripts/nginx.conf -p state/nginx -e /dev/stderr
