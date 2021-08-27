@@ -4,8 +4,8 @@
     version = "v2021-08-27-linux64";
 
     src = builtins.fetchTarball {
-      url = "https://hydra.iohk.io/build/7422334/download/1/cardano-wallet-v2021-08-27-linux64.tar.gz";
-      sha256 = "1x38n6nap4lcwpx3bl6lz83p2kns3drwxkq0vgkwihnfggr49izp";
+      url = "https://hydra.iohk.io/build/6275166/download/1/cardano-wallet-v2021-04-28-linux64.tar.gz";
+      sha256 = "18m1nrbdgcy9d2rivhr7wyngv37crx0zkqibynb2j5mfbs2hz515";
     };
 
     phases = [ "installPhase" ];
