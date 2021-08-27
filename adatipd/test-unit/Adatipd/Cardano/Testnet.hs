@@ -9,7 +9,7 @@ import Adatipd.Cardano (Lovelace (..))
 import Data.Aeson ((.=))
 import Data.Foldable (for_)
 import Data.Function ((&))
-import Data.Int (Int64)
+import Data.Int (Int32, Int64)
 import Data.Set (Set)
 import Data.Time.Clock (nominalDiffTimeToSeconds)
 import Data.Time.Clock.POSIX (getPOSIXTime)
@@ -363,8 +363,18 @@ configuration =
     , "LastKnownBlockVersion-Minor" .= id @Int 2
     , "LastKnownBlockVersion-Alt"   .= id @Int 0
 
-      -- We do not need metrics in our use case.
-    , "TurnOnLogMetrics" .= False ]
+      -- Logging configuration.
+      -- This isn’t very interesting.
+    , "TurnOnLogging"    .= False
+    , "TurnOnLogMetrics" .= False
+    , "minSeverity"      .= id @String "Info"
+    , "TracingVerbosity" .= id @String "NormalVerbosity"
+    , "setupBackends"    .= id @String "KatipBK"
+    , "setupScribes"     .=
+        [ Ae.object
+            [ "scKind"   .= id @String "StdoutSK"
+            , "scName"   .= id @String "stdout"
+            , "scFormat" .= id @String "ScText" ] ] ]
 
 --------------------------------------------------------------------------------
 -- Running cardano-node
@@ -417,5 +427,5 @@ withCardanoNode directory port action =
 
 -- |
 -- Identifies the Cardano network.
-protocolMagic :: Int
-protocolMagic = 0xDEADBEEF
+protocolMagic :: Int32
+protocolMagic = 0xBEEF

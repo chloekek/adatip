@@ -15,4 +15,4 @@ spec =
       \Testnet {..} -> do
         callProcess "tree" [ tDirectory ]
         callProcess "cat" [ tDirectory <> "/shelley/genesis.spec.json" ]
-        threadDelay 1_000_000
+        threadDelay 5_000_000
