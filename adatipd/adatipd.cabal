@@ -8,11 +8,11 @@ common haskell-settings
     -- Only list extensions that do not impact code that doesn’t need them.
     -- Other extensions should be explicitly enabled with LANGUAGE pragmas.
     default-extensions:
-        DataKinds
         DerivingStrategies
-        InstanceSigs
+        LambdaCase
+        NumericUnderscores
         RecordWildCards
-        TypeOperators
+        ViewPatterns
 
     default-language:
         Haskell2010
@@ -31,18 +31,27 @@ library
         src
 
     exposed-modules:
-        Adatipd.Api
         Adatipd.Cardano
         Adatipd.Nickname
         Adatipd.Options
+        Adatipd.WaiUtil
+        Adatipd.Web
+        Adatipd.Web.CreatorHome
+        Adatipd.Web.Layout
+        Adatipd.Web.NotFound
 
     build-depends:
         base,
-        http-api-data,
+        blaze-html,
+        blaze-markup,
+        http-types,
         optparse-applicative,
-        servant,
+        qrcode-core,
+        qrcode-juicypixels,
+        scientific,
         text,
-        vector
+        vector,
+        wai
 
 executable adatipd
 
@@ -58,7 +67,8 @@ executable adatipd
     build-depends:
         adatipd,
         base,
-        optparse-applicative
+        optparse-applicative,
+        warp
 
 test-suite test-unit
 
@@ -75,6 +85,7 @@ test-suite test-unit
         Spec.hs
 
     other-modules:
+        Adatipd.CardanoSpec
         Adatipd.NicknameSpec
 
     build-depends:

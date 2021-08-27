@@ -7,10 +7,13 @@ let
     # Note that Cabal files must still list the required dependencies.
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
+        p.blaze-html                    # Library for generating HTML.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
         p.optparse-applicative          # Library for parsing CLI arguments.
-        p.servant                       # Library for writing web servers.
+        p.qrcode-juicypixels            # Library for rendering QR codes.
+        p.vector                        # Library for arrays.
+        p.warp                          # Library for HTTP servers.
     ];
 
 in
@@ -22,6 +25,8 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
+            nixpkgs.hivemind            # Process supervisor for dev env.
+            nixpkgs.nginx               # Web server and HTTP proxy.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.

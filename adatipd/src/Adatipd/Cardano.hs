@@ -1,8 +1,41 @@
 module Adatipd.Cardano
-  ( Address
-  , Lovelace
+  ( -- * Addresses
+    Address (..)
+  , formatBech32
+
+    -- * Amounts
+  , Lovelace (..)
+  , formatAda
   ) where
 
-data Address
+import Data.Scientific (FPFormat (Fixed), formatScientific, scientific)
+import Data.Text (Text)
 
-data Lovelace
+--------------------------------------------------------------------------------
+-- Addresses
+
+-- TODO: Address format should be restricted to Bech32 strings.
+--       (Probably means making the constructor private.)
+newtype Address =
+  Address Text
+
+formatBech32 :: Address -> Text
+formatBech32 (Address bech32) = bech32
+
+--------------------------------------------------------------------------------
+-- Amounts
+
+newtype Lovelace =
+  Lovelace Integer
+  deriving stock (Show)
+
+formatAda :: Lovelace -> String
+formatAda (Lovelace lovelace) =
+  let
+    decimal =
+      formatScientific
+        Fixed   -- Standard decimal notation.
+        Nothing -- Do not restrict number of decimals.
+        (scientific lovelace (-6))
+  in
+    "₳" <> decimal

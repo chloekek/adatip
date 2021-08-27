@@ -1,17 +1,13 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Adatipd.Nickname
   ( Nickname
   , format
   , parse
+  , parseUriComponent
   ) where
 
-import Data.Bifunctor (first)
-import Data.Function ((&))
 import Data.Text (Text)
-import Web.HttpApiData (FromHttpApiData, parseUrlPiece)
 
-import qualified Data.Text as Text (any, length, null, pack, toLower, uncons)
+import qualified Data.Text as Text (any, length, null, toLower, uncons)
 
 -- |
 -- Nickname uniquely identifying a creator.
@@ -52,10 +48,9 @@ isValidChar c =
 -- |
 -- The mandatory @~@ prefix is removed.
 -- The nickname is then parsed using 'parse'.
-instance FromHttpApiData Nickname where
-  parseUrlPiece :: Text -> Either Text Nickname
-  parseUrlPiece text =
-    case Text.uncons text of
-      Just ('~', nickname) -> parse nickname & first Text.pack
-      Just _ -> Left "Nickname missing ‘~’ prefix"
-      _ -> Left "Nickname is empty"
+parseUriComponent :: Text -> Either String Nickname
+parseUriComponent text =
+  case Text.uncons text of
+    Just ('~', nickname) -> parse nickname
+    Just _ -> Left "Nickname missing ‘~’ prefix"
+    _ -> Left "Nickname is empty"
