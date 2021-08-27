@@ -3,6 +3,7 @@
 module Adatipd.Cardano.Testnet
   ( Testnet (..)
   , withTestnet
+  , protocolMagic
   ) where
 
 import Adatipd.Cardano (Lovelace (..))
@@ -419,7 +420,8 @@ withCardanoNode directory port action =
         [ "run"
         , "--config", "configuration.yaml"
         , "--topology", nodeDirectory </> "topology.json"
-        , "--database-path", nodeDirectory </> "db" ]
+        , "--database-path", nodeDirectory </> "db"
+        , "--socket-path", nodeDirectory </> "socket" ]
 
     -- Set some extra options for the process.
     createProcess' :: CreateProcess
