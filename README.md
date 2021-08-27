@@ -71,3 +71,23 @@ exclusive content though a subscription-based monetization scheme.
   </dd>
 
 </dl>
+
+## Development environment
+
+Run the software:
+
+```bash
+nix-shell --pure --run hivemind
+```
+
+Set up the database:
+
+```bash
+nix-shell --pure --run scripts/setup-database.bash
+```
+
+Run database schema migrations:
+
+```bash
+nix-shell --pure --run 'scripts/dbmate.bash migrate'
+```
