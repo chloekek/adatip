@@ -91,3 +91,9 @@ Run database schema migrations:
 ```bash
 nix-shell --pure --run 'scripts/dbmate.bash migrate'
 ```
+
+Insert test data into the database:
+
+```bash
+nix-shell --pure --run scripts/seed-database.bash
+```
