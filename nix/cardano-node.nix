@@ -44,7 +44,7 @@ let
   };
 in
   nixpkgs.stdenv.mkDerivation {
-    name = "cardano";
+    name = "cardano-node";
     version = "1.27.0-linux";
 
     src = builtins.fetchTarball {
