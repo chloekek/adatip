@@ -13,15 +13,27 @@ export PGUSER=adatip_app
 export PGPASSWORD=adatip_app
 export PGDATABASE=adatip
 
+################################################################################
+# Wipe
+
 if (( $# > 0 )) && [[ $1 = '--wipe' ]]; then
 
     psql <<'SQL'
+
+        \set ON_ERROR_STOP
+
         DELETE FROM creators;
+
 SQL
 
 fi
 
+################################################################################
+# Seed
+
 psql <<'SQL'
+
+\set ON_ERROR_STOP
 
 INSERT INTO creators
     (id, nickname, biography)
