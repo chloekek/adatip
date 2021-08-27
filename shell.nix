@@ -26,9 +26,10 @@ in
         nativeBuildInputs = [
             ghcWithPackages             # Haskell compiler.
             nixpkgs.cabal-install       # Haskell build system.
-            nixpkgs.hivemind            # Process supervisor for dev env.
+            nixpkgs.dbmate              # Database schema migration tool.
             nixpkgs.entr                # Autoreload tool, to rebuild on change.
             nixpkgs.gitMinimal          # To list files for entr.
+            nixpkgs.hivemind            # Process supervisor for dev env.
             nixpkgs.nginx               # Web server and HTTP proxy.
             nixpkgs.postgresql_13       # Relational database server.
         ];

@@ -62,18 +62,17 @@ fetchCreatorHome sqlConn nickname = do
 
   -- This is just to demo SQL connectivity for now.
   -- In the future we will get actual user info from the database.
+
   biography <-
     Sql.runSession sqlConn $
-      Sql.statement () $
+      Sql.statement (Nickname.format nickname) $
         Sql.Statement
-          "SELECT version()"
-          SqlEnc.noParams
-          (SqlDec.singleRow (SqlDec.column (SqlDec.nonNullable SqlDec.text)))
+          "SELECT biography FROM creators WHERE nickname = $1"
+          (SqlEnc.param (SqlEnc.nonNullable SqlEnc.text))
+          (SqlDec.rowMaybe (SqlDec.column (SqlDec.nonNullable SqlDec.text)))
           False
 
-  if Nickname.format nickname == "henkdevries"
-    then pure (Just (henkdevries biography))
-    else pure Nothing
+  pure $ henkdevries <$> biography
 
   where
     henkdevries :: Text -> CreatorHome
