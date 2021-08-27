@@ -311,12 +311,12 @@ patchShellyGenesisSpec (Ae.Object original) =
     -- Set this to a low number as we have very few nodes.
     & HM.insert "updateQuorum" (Ae.Number 2)
 
-    -- In our case Shelley is protocol version 0.2,
-    -- as we first go through Byron 1 and Byron 2.
+    -- In our case Shelley is protocol version 2,
+    -- as we first go through Byron (0) and Byron OBFT (1).
     & HM.insert "protocolVersion" (
         Ae.object
-          [ "minor" .= id @Int 0
-          , "major" .= id @Int 2 ]
+          [ "major" .= id @Int 2
+          , "minor" .= id @Int 0 ]
     )
 patchShellyGenesisSpec _ =
   error "Shelley genesis spec should be a JSON object"
