@@ -18,7 +18,7 @@ let
         p.warp                          # Library for HTTP servers.
     ];
 
-    # By passing '--argstr <profile>' to nix-shell
+    # By passing '--argstr profile <profile>' to nix-shell
     # you can select a smaller set of packages.
     # This is especially useful in CI
     # to avoid excessive downloads.
