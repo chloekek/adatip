@@ -29,6 +29,7 @@ in
             nixpkgs.entr                # Autoreload tool, to rebuild on change.
             nixpkgs.gitMinimal          # To list files for entr.
             nixpkgs.nginx               # Web server and HTTP proxy.
+            nixpkgs.postgresql_13       # Relational database server.
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
