@@ -16,6 +16,8 @@ let
         p.warp                          # Library for HTTP servers.
     ];
 
+    cardano = import ./nix/cardano.nix { inherit nixpkgs; };
+
 in
 
     # Create a Nix shell environment with all the required development tools.
@@ -27,6 +29,7 @@ in
             nixpkgs.cabal-install       # Haskell build system.
             nixpkgs.hivemind            # Process supervisor for dev env.
             nixpkgs.nginx               # Web server and HTTP proxy.
+            cardano
         ];
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
@@ -38,4 +41,7 @@ in
         LANG = "en_US.UTF-8";
         LC_ALL = "en_US.UTF-8";
 
+        # Expose the location of the default Cardano configuration, so we can
+        # make it run against the Cardano mainnet or testnet from the Procfile.
+        CARDANO_CONFIGURATION = "${cardano}/lib/configuration";
     }
