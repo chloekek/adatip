@@ -44,4 +44,9 @@ in
         # Expose the location of the default Cardano configuration, so we can
         # make it run against the Cardano mainnet or testnet from the Procfile.
         CARDANO_CONFIGURATION = "${cardano}/lib/configuration";
+
+        # The script run-cardano-node.bash, which is started from the Procfile,
+        # runs a node that puts its socket here. By setting up this variable,
+        # cardano-cli will work out of the box, if you have Hivemind running.
+        CARDANO_NODE_SOCKET_PATH = "state/cardano-node.socket";
     }
