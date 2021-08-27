@@ -27,6 +27,7 @@ in
             nixpkgs.cabal-install       # Haskell build system.
             nixpkgs.hivemind            # Process supervisor for dev env.
             nixpkgs.entr                # Autoreload tool, to rebuild on change.
+            nixpkgs.gitMinimal          # To list files for entr.
             nixpkgs.nginx               # Web server and HTTP proxy.
         ];
 
