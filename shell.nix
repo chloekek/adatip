@@ -18,6 +18,9 @@ let
         p.warp                          # Library for HTTP servers.
     ];
 
+    cardanoConfig = import ./nix/cardano-config.nix { inherit nixpkgs; };
+    cardanoWallet = import ./nix/cardano-wallet.nix { inherit nixpkgs; };
+
     # By passing '--argstr profile <profile>' to nix-shell
     # you can select a smaller set of packages.
     # This is especially useful in CI
@@ -34,6 +37,7 @@ let
             nixpkgs.gitMinimal          # To list files for entr.
             nixpkgs.hivemind            # Process supervisor for dev env.
             nixpkgs.nginx               # Web server and HTTP proxy.
+            cardanoWallet
         ];
 
         haskell = [
@@ -64,4 +68,12 @@ in
         LANG = "en_US.UTF-8";
         LC_ALL = "en_US.UTF-8";
 
+        # Expose the location of the default Cardano configuration, so we can
+        # make it run against the Cardano mainnet or testnet from the Procfile.
+        CARDANO_CONFIGURATION = "${cardanoConfig}";
+
+        # The script run-cardano-node.bash, which is started from the Procfile,
+        # runs a node that puts its socket here. By setting up this variable,
+        # cardano-cli will work out of the box, if you have Hivemind running.
+        CARDANO_NODE_SOCKET_PATH = "state/cardano-node.socket";
     }
