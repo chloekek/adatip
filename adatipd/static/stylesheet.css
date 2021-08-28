@@ -59,7 +59,6 @@ body
     text-shadow: 0 2px 20px black;
 }
 
-/* Full name of the creator. */
 .creator-banner > .-name
 {
     font-size: 2rem;
@@ -71,7 +70,6 @@ body
     width: var(--content-width);
 }
 
-/* Biography of the creator. */
 .creator-banner > .-biography
 {
     font-weight: bold;
@@ -82,6 +80,8 @@ body
     width: var(--content-width);
 }
 
+/* These are the tabs under the creator’s banner
+   that link to the posts, tips, and tiers. */
 .creator-tabs
 {
     background: var(--subtle-highlight-color);
@@ -151,6 +151,7 @@ body
     margin-bottom: var(--size-unit);
 }
 
+/* This is the explanation of what tips are. */
 .creator-tip-suggestions > .-tutorial
 {
     line-height: var(--size-unit);
@@ -177,6 +178,8 @@ body
     border-style: solid;
 }
 
+/* QR codes are annoying to look at, so dim them if unnoticed.
+   Also dim the addresses as it looks nicer that way. */
 .creator-tip-suggestions > article:not(:hover) > .-qr-code,
 .creator-tip-suggestions > article:not(:hover) > .-address
 {
