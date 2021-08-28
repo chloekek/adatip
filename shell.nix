@@ -30,6 +30,7 @@ let
         database = [
             nixpkgs.dbmate              # Database schema migration tool.
             nixpkgs.postgresql_13       # Relational database server.
+            nixpkgs.python3             # To check migration file names.
         ];
 
         dev_env = [
