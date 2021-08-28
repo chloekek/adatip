@@ -17,4 +17,4 @@ fi
 exec cardano-wallet serve \
   --node-socket state/cardano-node.socket \
   --database "state/cardano-wallet-$CARDANO_NETWORK" \
-  ${args[@]}
+  "${args[@]}"
