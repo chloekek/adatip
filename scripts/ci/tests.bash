@@ -2,7 +2,7 @@
 
 # This script is used by GitHub actions.
 
-set -efuo pipefail
+set -efuo pipefail -o xtrace
 
 cd adatipd
 
