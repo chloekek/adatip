@@ -1,4 +1,5 @@
-{ nixpkgs ? import nix/nixpkgs }:
+{ nixpkgs ? import nix/nixpkgs
+, profile ? "all" }:
 
 let
 
@@ -17,21 +18,42 @@ let
         p.warp                          # Library for HTTP servers.
     ];
 
+    # By passing '--argstr profile <profile>' to nix-shell
+    # you can select a smaller set of packages.
+    # This is especially useful in CI
+    # to avoid excessive downloads.
+    profiles = rec {
+
+        database = [
+            nixpkgs.dbmate              # Database schema migration tool.
+            nixpkgs.postgresql_13       # Relational database server.
+        ];
+
+        dev_env = [
+            nixpkgs.entr                # Autoreload tool, to rebuild on change.
+            nixpkgs.gitMinimal          # To list files for entr.
+            nixpkgs.hivemind            # Process supervisor for dev env.
+            nixpkgs.nginx               # Web server and HTTP proxy.
+        ];
+
+        haskell = [
+            ghcWithPackages             # Haskell compiler.
+            nixpkgs.cabal-install       # Haskell build system.
+        ];
+
+        ci_tests = haskell;
+        ci_db_setup = database;
+
+        all = haskell ++ database ++ dev_env;
+    };
+
 in
 
     # Create a Nix shell environment with all the required development tools.
     nixpkgs.mkShell {
 
         # Development tools to be made available in the shell.
-        nativeBuildInputs = [
-            ghcWithPackages             # Haskell compiler.
-            nixpkgs.cabal-install       # Haskell build system.
-            nixpkgs.hivemind            # Process supervisor for dev env.
-            nixpkgs.entr                # Autoreload tool, to rebuild on change.
-            nixpkgs.gitMinimal          # To list files for entr.
-            nixpkgs.nginx               # Web server and HTTP proxy.
-            nixpkgs.postgresql_13       # Relational database server.
-        ];
+        nativeBuildInputs = profiles.${profile};
 
         # Haskell shits itself if it can’t find the UTF-8 locale.
         # Nixpkgs patches glibc to look up locales in LOCALE_ARCHIVE ([1]).
