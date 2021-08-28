@@ -112,9 +112,9 @@ renderCreatorHome :: Options -> CreatorHome -> Markup
 renderCreatorHome options CreatorHome {..} =
   renderLayout options chName $ do
 
-    HH.header $ do
-      HH.h1 $ HB.text chName
-      HH.p $ HB.text chBiography
+    HH.header ! HA.class_ "creator-banner" $ do
+      HH.h1 ! HA.class_ "-name" $ HB.text chName
+      HH.p ! HA.class_ "-biography" $ HB.text chBiography
 
     HH.section $ do
       HH.h1 "Tip suggestions"
@@ -142,16 +142,14 @@ renderTipSuggestion TipSuggestion {..} = do
       qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 formattedAddress
       qrImagePng = Qr.toPngDataUrlT 4 8 <$> qrImage
 
-  HH.article ! HA.class_ "tip-suggestion" $
+  HH.article $
 
     HH.details $ do
 
       HH.summary $
         HH.header $ do
-          HH.div ! HA.class_ "amount" $
-            HB.string (formatAda tsAmount)
-          HH.h1 ! HA.class_ "title" $
-            HB.text tsTitle
+          HB.string (formatAda tsAmount)
+          HB.text tsTitle
 
       case qrImagePng of
         Nothing ->
@@ -159,10 +157,9 @@ renderTipSuggestion TipSuggestion {..} = do
             "Unfortunately no QR code could \
             \be generated for this address."
         Just qrImagePng' ->
-          HH.section ! HA.class_ "qr-code" $
-            HH.img ! HA.src (HB.lazyTextValue qrImagePng')
+          HH.img ! HA.src (HB.lazyTextValue qrImagePng')
 
-      HH.section ! HA.class_ "address" $
+      HH.section $
         HB.text formattedAddress
 
 -- |
@@ -170,16 +167,15 @@ renderTipSuggestion TipSuggestion {..} = do
 renderPost :: Post -> Markup
 renderPost Post {..} =
 
-  HH.article ! HA.class_ "post" $ do
+  HH.article $ do
 
-    HH.header $ do
-      HH.h1 ! HA.class_ "title" $
-        HB.text pTitle
+    HH.header $
+      HH.h1 $ HB.text pTitle
 
-    HH.section ! HA.class_ "content" $
+    HH.section $
       HH.p $ HB.text pContent
 
-    HH.section ! HA.class_ "attachments" $
+    HH.section $
       for_ pAttachments $
         \case
           ImageAttachment -> HH.p "(todo: image attachment)"
