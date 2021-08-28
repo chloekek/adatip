@@ -11,6 +11,7 @@ common haskell-settings
         DeriveAnyClass
         DerivingStrategies
         LambdaCase
+        NamedFieldPuns
         NumericUnderscores
         RecordWildCards
         ViewPatterns
@@ -38,7 +39,9 @@ library
         Adatipd.Sql
         Adatipd.WaiUtil
         Adatipd.Web
-        Adatipd.Web.CreatorHome
+        Adatipd.Web.CreatorLayout
+        Adatipd.Web.CreatorPosts
+        Adatipd.Web.CreatorTipSuggestions
         Adatipd.Web.Layout
         Adatipd.Web.NotFound
 

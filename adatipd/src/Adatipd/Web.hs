@@ -1,9 +1,12 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Adatipd.Web
   ( handle
   ) where
 
 import Adatipd.Options (Options (..))
-import Adatipd.Web.CreatorHome (handleCreatorHome)
+import Adatipd.Web.CreatorPosts (handleCreatorPosts)
+import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
 import Adatipd.Web.NotFound (handleNotFound)
 
 import qualified Adatipd.Nickname as Nickname (parseUriComponent)
@@ -23,7 +26,15 @@ handle options sqlConn request writeResponse =
     -- such as in the examples below.
 
     [Nickname.parseUriComponent -> Right nickname] ->
-      handleCreatorHome options sqlConn nickname request writeResponse
+      handleCreatorPosts options sqlConn nickname request writeResponse
+
+    [Nickname.parseUriComponent -> Right nickname, "tips"] ->
+      handleCreatorTipSuggestions options sqlConn nickname request writeResponse
+
+    {-
+    [Nickname.parseUriComponent -> Right nickname, "tiers"] ->
+      handleCreatorTiers options sqlConn nickname request writeResponse
+    -}
 
     _ ->
       handleNotFound options request writeResponse
