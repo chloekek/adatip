@@ -151,6 +151,18 @@ body
     margin-bottom: var(--size-unit);
 }
 
+.creator-tip-suggestions > .-tutorial
+{
+    line-height: var(--size-unit);
+    text-align: center;
+    width: var(--content-width);
+}
+
+.creator-tip-suggestions > .-tutorial > strong
+{
+    font-weight: bold;
+}
+
 .creator-tip-suggestions > article
 {
     border: dashed 3px var(--subtle-highlight-color);

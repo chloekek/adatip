@@ -93,7 +93,15 @@ fetchCreatorTipSuggestions sqlConn nickname = do
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
 renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
   renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
-    HH.section ! HA.class_ "creator-tip-suggestions" $
+    HH.section ! HA.class_ "creator-tip-suggestions" $ do
+      HH.p ! HA.class_ "-tutorial" $ do
+        "Feeling generous? Send "
+        HH.strong $ HB.text (ciName ctsCreatorInfo)
+        " a tip! 😍"
+        HH.br
+        "The amounts shown are suggestions; you may tip any amount."
+        HH.br
+        "Note that tips do not grant access to exclusive content."
       traverse_ renderTipSuggestion ctsTipSuggestions
 
 renderTipSuggestion :: TipSuggestion -> Markup
