@@ -1,58 +1,82 @@
+*
+{
+    /* I forgot why I always do this. */
+    box-sizing: border-box;
+}
+
 body
 {
-    background-color: white;
+    /* Color scheme. */
+    --primary-color: #001AA5;
+    --secondary-color: orange;
+
+    /* This is used for line heights and paddings.
+       It must be slightly larger than 1rem. */
+    --size-unit: 1.61803rem;
+
+    /* Width of the page content. */
+    --content-width: 960px;
+
+    /* This may be overridden by the page using a style attribute. */
+    --creator-banner-image: url("/static/default-creator-banner-image.jpg");
+
+    background: white;
     color: black;
     font-family: "Roboto", sans-serif;
-    margin: 0;
 }
 
-body > .header,
-body > .content,
-body > .footer
+/* This is the bar at the top of the page.
+   It contains instance-wide navigation. */
+.page-header
 {
-    margin: 0 auto;
-    padding: 1rem 0;
-    width: 960px;
+    background: var(--primary-color);
+    padding: calc(0.5 * var(--size-unit));
 }
 
-body > .header
+/* Title of the instance that links to home. */
+.page-header > .-instance-title
 {
-    border-bottom: solid 1px gray;
-}
-
-body > .footer
-{
-    border-top: solid 1px gray;
-    color: gray;
-}
-
-.tip-suggestion > details > summary
-{
-    cursor: pointer;
-}
-
-.tip-suggestion > details > summary > header
-{
-    display: inline;
-}
-
-.tip-suggestion > details > summary > header > .amount
-{
-    background-color: #001aa5;
-    border-radius: 1em;
     color: white;
-    display: inline;
-    padding: 0 0.5em;
+    font-weight: bold;
+    line-height: var(--size-unit);
+    text-decoration: none;
 }
 
-.tip-suggestion > details > summary > header > .title
+/* Big banner at the top of a creator’s page.
+   Shows their banner image, name, and biography. */
+.creator-banner
 {
-    display: inline;
-    font-size: 1rem;
-    margin-left: 0.5em;
+    background-image:
+        linear-gradient(transparent, #00000099),
+        var(--creator-banner-image);
+    background-size: cover;
+    background-position: center 75%;
+    padding-top: calc(4 * var(--size-unit));
+    padding-bottom: var(--size-unit);
+
+    color: white;
+    text-shadow: 0 2px 20px black;
 }
 
-.tip-suggestion > details > .address
+/* Full name of the creator. */
+.creator-banner > .-name
 {
-    font-family: monospace;
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: calc(2 * var(--size-unit));
+
+    /* Center the content on the page. */
+    margin: 0 auto;
+    width: var(--content-width);
+}
+
+/* Biography of the creator. */
+.creator-banner > .-biography
+{
+    font-weight: bold;
+    line-height: var(--size-unit);
+
+    /* Center the content on the page. */
+    margin: 0 auto;
+    width: var(--content-width);
 }

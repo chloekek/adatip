@@ -23,6 +23,7 @@ renderLayout Options {..} title content = do
 
   HH.meta ! HA.charset "utf-8"
 
+  HH.link ! HA.rel "stylesheet" ! HA.href "/static/reset.css"
   HH.link ! HA.rel "stylesheet" ! HA.href "/static/stylesheet.css"
 
   HH.title $ do
@@ -30,11 +31,9 @@ renderLayout Options {..} title content = do
     HB.text " — "
     HB.text oInstanceTitle
 
-  HH.header ! HA.class_ "header" $
-    HH.a ! HA.href "/" $ HB.text oInstanceTitle
+  HH.header ! HA.class_ "page-header" $
+    HH.a ! HA.class_ "-instance-title" ! HA.href "/" $
+      HB.text oInstanceTitle
 
-  HH.section ! HA.class_ "content" $
+  HH.section ! HA.class_ "page-content" $
     content
-
-  HH.footer ! HA.class_ "footer" $
-    HB.text oInstanceTitle
