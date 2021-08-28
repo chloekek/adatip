@@ -17,4 +17,5 @@ fi
 exec cardano-wallet serve \
   --node-socket state/cardano-node.socket \
   --database "state/cardano-wallet-$CARDANO_NETWORK" \
+  --port 8083 \
   "${args[@]}"
