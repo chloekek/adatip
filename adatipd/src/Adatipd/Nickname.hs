@@ -1,7 +1,10 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Adatipd.Nickname
   ( Nickname
   , format
   , parse
+  , formatUriComponent
   , parseUriComponent
   ) where
 
@@ -44,6 +47,12 @@ isValidChar c =
   (c >= 'a' && c <= 'z') ||
   (c >= 'A' && c <= 'Z') ||
   (c >= '0' && c <= '9')
+
+-- |
+-- Format a nickname to be the URI of the creator’s home page.
+-- This just prefixes a @~@ to the nickname.
+formatUriComponent :: Nickname -> Text
+formatUriComponent = ("~" <>) . format
 
 -- |
 -- The mandatory @~@ prefix is removed.
