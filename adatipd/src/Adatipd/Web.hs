@@ -6,6 +6,7 @@ module Adatipd.Web
 
 import Adatipd.Options (Options (..))
 import Adatipd.Web.CreatorPosts (handleCreatorPosts)
+import Adatipd.Web.CreatorTiers (handleCreatorTiers)
 import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
 import Adatipd.Web.NotFound (handleNotFound)
 
@@ -31,10 +32,8 @@ handle options sqlConn request writeResponse =
     [Nickname.parseUriComponent -> Right nickname, "tips"] ->
       handleCreatorTipSuggestions options sqlConn nickname request writeResponse
 
-    {-
     [Nickname.parseUriComponent -> Right nickname, "tiers"] ->
       handleCreatorTiers options sqlConn nickname request writeResponse
-    -}
 
     _ ->
       handleNotFound options request writeResponse

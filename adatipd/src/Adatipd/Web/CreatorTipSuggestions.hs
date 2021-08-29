@@ -8,7 +8,7 @@ import Adatipd.Web.CreatorLayout
 
 import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatBech32)
 import Adatipd.Nickname (Nickname)
-import Adatipd.Options (Options (..))
+import Adatipd.Options (Options)
 import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (traverse_)
 import Data.Text (Text)
