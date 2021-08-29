@@ -12,8 +12,9 @@ GRANT SELECT, INSERT, UPDATE, DELETE
     TO adatip_app;
 
 -- For looking up the current nickname of a creator. A creator's current
--- nickname is the nickname with the highest created time.
-CREATE INDEX ix_nicknames_creator_created ON nicknames (creator, created);
+-- nickname is the nickname with the highest created time. We make this a unique
+-- index to ensure that there is a unique current nickname.
+CREATE UNIQUE INDEX ix_nicknames_creator_created ON nicknames (creator, created);
 
 INSERT INTO
     nicknames (nickname, creator, created)
