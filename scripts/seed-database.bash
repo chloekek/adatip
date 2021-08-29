@@ -19,12 +19,27 @@ psql <<'SQL'
 START TRANSACTION;
 
 INSERT INTO creators
-    (id, nickname)
+    (id)
 VALUES
-    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
-    , 'henkdevries' ),
-    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6'
-    , 'cookingwithalex' );
+    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588' )
+    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6' )
+    ;
+
+INSERT INTO nicknames
+    (nickname, creator, created)
+VALUES
+    ( 'ingriddevries'
+    , '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
+    , '2021-08-28T00:00:00Z'
+    ),
+    ( 'henkdevries'
+    , '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
+    , '2021-08-29T00:00:00Z'
+    ),
+    ( 'cookingwithalex'
+    , '584c76d5-d016-4c17-9cd7-bc469cec43f6'
+    , '2021-08-29T00:00:00Z'
+    );
 
 INSERT INTO creator_names
     (creator_id, created, name)

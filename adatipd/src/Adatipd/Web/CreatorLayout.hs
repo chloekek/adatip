@@ -48,9 +48,9 @@ fetchCreatorInfo sqlConn nickname =
         \  creator_current_name(id),\n\
         \  creator_current_biography(id)\n\
         \FROM\n\
-        \  creators\n\
+        \  creators, nicknames\n\
         \WHERE\n\
-        \  nickname = $1"
+        \  nickname = $1 AND creators.id = nicknames.creator"
         encodeNickname
         (SqlDec.rowMaybe decodeCreatorInfo)
         False
