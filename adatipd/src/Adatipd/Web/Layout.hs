@@ -23,7 +23,6 @@ renderLayout Options {..} title content = do
 
   HH.meta ! HA.charset "utf-8"
 
-  HH.link ! HA.rel "stylesheet" ! HA.href "/static/reset.css"
   HH.link ! HA.rel "stylesheet" ! HA.href "/static/stylesheet.css"
 
   HH.title $ do

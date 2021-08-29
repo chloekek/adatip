@@ -1,0 +1,78 @@
+// The tip suggestions page of a creator.
+
+.creator-tip-suggestions
+{
+    @include center-content;
+    @include creator-tabs-content-margin;
+
+    display: flex;
+    gap: size(1rem);
+    flex-wrap: wrap;
+    justify-content: center;
+
+    margin-bottom: size(1rem);
+
+    & > .-tutorial
+    {
+        @include rich-text;
+        text-align: center;
+        width: $page-width;
+    }
+
+    & > article
+    {
+        border: dashed 3px var(--subtle-highlight-color);
+        border-radius: size(1rem);
+
+        text-align: center;
+
+        // The QR code adds padding of its own, as it has a white border.
+        // So we do not need to set left and right padding for the article.
+        padding: size(1rem) 0;
+
+        &:hover
+        {
+            border-color: var(--primary-color);
+            border-style: solid;
+        }
+
+        // QR codes are annoying to look at, so dim them if unnoticed.
+        // Also dim the addresses as it looks nicer that way.
+        &:not(:hover) > .-qr-code,
+        &:not(:hover) > .-address
+        {
+            opacity: 0.1;
+        }
+
+        & > .-header
+        {
+            font-size: 2rem;
+            font-weight: bold;
+            line-height: size(1em);
+
+            & > .-title,
+            & > .-amount
+            {
+                display: inline;
+            }
+
+            & > .-amount
+            {
+                background: var(--primary-color);
+                border-radius: size(1em);
+                color: white;
+                margin-left: size(0.5rem);
+                padding: 0 size(0.25em);
+            }
+        }
+
+        & > .-address
+        {
+            font-family: monospace;
+            word-break: break-all;
+
+            margin: 0 auto;
+            width: $page-width / 3;
+        }
+    }
+}
