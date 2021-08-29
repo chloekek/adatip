@@ -10,7 +10,8 @@ import Adatipd.Cardano (Address (..), Lovelace (..), formatAdaWithSymbol, format
 import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.NotFound (handleNotFound)
-import Data.Foldable (traverse_)
+import Codec.QRCode (QRImage)
+import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
@@ -39,8 +40,26 @@ data CreatorTipSuggestions =
 data TipSuggestion =
   TipSuggestion
     { tsTitle :: Text
-    , tsAmount :: Lovelace
+    , tsAmount :: Maybe Lovelace
+      -- ^ A tip suggestion may have no specified amount.
+    , tsQrImage :: Maybe QRImage
+      -- ^ QR code creation may fail, so this is 'Maybe'.
     , tsAddress :: Address }
+
+-- |
+-- Create a tip suggestion from its parameters.
+-- QR image will be generated automatically
+-- and does not need to be given to this function.
+mkTipSuggestion :: Text -> Maybe Lovelace -> Address -> TipSuggestion
+mkTipSuggestion tsTitle tsAmount tsAddress =
+  let
+    -- High error correction leads to an enormous QR code.
+    -- Medium should be good enough? I don’t really know.
+    qrOptions = Qr.defaultQRCodeOptions Qr.M
+    qrText = TLB.toLazyText (Cardano.paymentUri tsAddress tsAmount)
+    tsQrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
+  in
+    TipSuggestion {..}
 
 --------------------------------------------------------------------------------
 -- Request handling
@@ -60,6 +79,11 @@ fetchCreatorTipSuggestions
   :: Sql.Connection -> Nickname -> IO (Maybe CreatorTipSuggestions)
 fetchCreatorTipSuggestions sqlConn nickname = do
   creatorInfo <- fetchCreatorInfo sqlConn nickname
+
+  -- TODO:
+  -- If there are no tip suggestions,
+  -- generate a default one with no suggested amount.
+
   case creatorInfo of
     Nothing -> pure Nothing
     Just ctsCreatorInfo ->
@@ -68,27 +92,33 @@ fetchCreatorTipSuggestions sqlConn nickname = do
           { ctsCreatorInfo
           , ctsTipSuggestions =
               Vector.fromList
-                [ TipSuggestion
+                [ mkTipSuggestion
                     "Koffie"
-                    (Lovelace 1000000)
+                    (Just (Lovelace 1000000))
                     (Address "addr1qy7h4lxjsn7cz95gen79upe3lls6wlqn35m\
                               \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
                               \6pfj6qu4fj8dmr4tsa3g6qz")
-                , TipSuggestion
+                , mkTipSuggestion
                     "Chips"
-                    (Lovelace 2000000)
+                    (Just (Lovelace 2000000))
                     (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
                               \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
                               \6pfj6qu4fj8dmr4ts6ednhv")
-                , TipSuggestion
+                , mkTipSuggestion
                     "Boterham"
-                    (Lovelace 3000000)
+                    (Just (Lovelace 3000000))
                     (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
                               \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
                               \6pfj6qu4fj8dmr4ts6ednhv")
-                , TipSuggestion
+                , mkTipSuggestion
                     "Mag ik een cola?"
-                    (Lovelace 4000000)
+                    (Just (Lovelace 4000000))
+                    (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
+                              \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
+                              \6pfj6qu4fj8dmr4ts6ednhv")
+                , mkTipSuggestion
+                    "Support me!"
+                    Nothing
                     (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
                               \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
                               \6pfj6qu4fj8dmr4ts6ednhv") ] }
@@ -110,32 +140,28 @@ renderCreatorTipSuggestions options@Options {..} CreatorTipSuggestions {..} =
       traverse_ renderTipSuggestion ctsTipSuggestions
 
 renderTipSuggestion :: TipSuggestion -> Markup
-renderTipSuggestion TipSuggestion {..} = do
-
-  -- High error correction leads to an enormous QR code.
-  -- Medium should be good enough? I don’t really know.
-  let qrOptions = Qr.defaultQRCodeOptions Qr.M
-      qrText = TLB.toLazyText (Cardano.paymentUri tsAddress tsAmount)
-      qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
-      qrImagePng = Qr.toPngDataUrlT 4 8 <$> qrImage
+renderTipSuggestion TipSuggestion {..} =
 
   HH.article $ do
 
     HH.header ! HA.class_ "-header" $ do
       HH.h1 ! HA.class_ "-title" $
         HB.text tsTitle
-      HH.p ! HA.class_ "-amount" $
-        HB.textBuilder (formatAdaWithSymbol tsAmount)
+      for_ tsAmount $
+        \amount ->
+          HH.p ! HA.class_ "-amount" $
+            HB.textBuilder (formatAdaWithSymbol amount)
 
-    case qrImagePng of
+    case tsQrImage of
       Nothing ->
         HB.stringComment
           "Unfortunately no QR code could \
           \be generated for this address."
-      Just qrImagePng' ->
+      Just qrImage -> do
+        let qrImagePng = Qr.toPngDataUrlT 4 8 qrImage
         HH.img
           ! HA.class_ "-qr-code"
-          ! HA.src (HB.lazyTextValue qrImagePng')
+          ! HA.src (HB.lazyTextValue qrImagePng)
 
     HH.section ! HA.class_ "-address" $
       HB.text (formatBech32 tsAddress)

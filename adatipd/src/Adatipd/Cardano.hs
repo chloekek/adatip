@@ -66,9 +66,7 @@ formatAdaWithSymbol lovelace = "₳" <> formatAdaDecimal lovelace
 -- |
 -- Construct a CIP 13 [1] URI for Cardano payments.
 -- [1]: https://cips.cardano.org/cips/cip13/
-paymentUri :: Address -> Lovelace -> TLB.Builder
+paymentUri :: Address -> Maybe Lovelace -> TLB.Builder
 paymentUri address amount =
-  "web+cardano:"
-  <> TLB.fromText (formatBech32 address)
-  <> "?amount="
-  <> formatAdaDecimal amount
+  "web+cardano:" <> TLB.fromText (formatBech32 address)
+  <> foldMap (\amnt -> "?amount=" <> formatAdaDecimal amnt) amount
