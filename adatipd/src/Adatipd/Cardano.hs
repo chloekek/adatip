@@ -7,13 +7,15 @@ module Adatipd.Cardano
 
     -- * Amounts
   , Lovelace (..)
-  , formatAda
+  , lovelaceToAda
+  , formatAdaDecimal
+  , formatAdaWithSymbol
 
     -- * Payment URIs
   , paymentUri
   ) where
 
-import Data.Scientific (FPFormat (Fixed), formatScientific, scientific)
+import Data.Scientific (FPFormat (Fixed), Scientific, scientific)
 import Data.Text.Lazy.Builder.Scientific (formatScientificBuilder)
 
 import qualified Data.Text as T (Text)
@@ -37,16 +39,26 @@ newtype Lovelace =
   Lovelace Integer
   deriving stock (Show)
 
-formatAda :: Lovelace -> String
-formatAda (Lovelace lovelace) =
-  let
-    decimal =
-      formatScientific
-        Fixed   -- Standard decimal notation.
-        Nothing -- Do not restrict number of decimals.
-        (scientific lovelace (-6))
-  in
-    "₳" <> decimal
+-- |
+-- Convert an amount to its Ada value.
+lovelaceToAda :: Lovelace -> Scientific
+lovelaceToAda (Lovelace lovelace) =
+  scientific lovelace (-6)
+
+-- |
+-- Format an amount as its Ada value.
+formatAdaDecimal :: Lovelace -> TLB.Builder
+formatAdaDecimal lovelace =
+  formatScientificBuilder
+    Fixed   -- Standard decimal notation.
+    Nothing -- Do not restrict number of decimals.
+    (lovelaceToAda lovelace)
+
+-- |
+-- Format an amount as its Ada value
+-- prefixed by the ‘₳’ currency symbol.
+formatAdaWithSymbol :: Lovelace -> TLB.Builder
+formatAdaWithSymbol lovelace = "₳" <> formatAdaDecimal lovelace
 
 --------------------------------------------------------------------------------
 -- Payment URIs
@@ -55,8 +67,8 @@ formatAda (Lovelace lovelace) =
 -- Construct a CIP 13 [1] URI for Cardano payments.
 -- [1]: https://cips.cardano.org/cips/cip13/
 paymentUri :: Address -> Lovelace -> TLB.Builder
-paymentUri address (Lovelace lovelace) =
+paymentUri address amount =
   "web+cardano:"
   <> TLB.fromText (formatBech32 address)
   <> "?amount="
-  <> formatScientificBuilder Fixed Nothing (scientific lovelace (-6))
+  <> formatAdaDecimal amount

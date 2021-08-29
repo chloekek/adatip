@@ -1,12 +1,16 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Adatipd.CardanoSpec
   ( spec
   ) where
 
-import Adatipd.Cardano (Lovelace (..), formatAda)
+import Adatipd.Cardano (Lovelace (..), formatAdaWithSymbol)
 import Data.Foldable (for_)
 import Test.Hspec (Spec, it, shouldBe)
 
-examples :: [(Lovelace, String)]
+import qualified Data.Text.Lazy.Builder as TLB (Builder)
+
+examples :: [(Lovelace, TLB.Builder)]
 examples =
   [ (Lovelace 0, "₳0.0")
   , (Lovelace 1, "₳0.000001")
@@ -18,5 +22,5 @@ spec =
 
   for_ examples $
     \(lovelace, expected) ->
-      it ("formatAda formats (" <> show lovelace <> ") correctly") $
-        formatAda lovelace `shouldBe` expected
+      it ("formatAdaWithSymbol formats (" <> show lovelace <> ") correctly") $
+        formatAdaWithSymbol lovelace `shouldBe` expected

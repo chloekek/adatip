@@ -6,7 +6,7 @@ module Adatipd.Web.CreatorTiers
 
 import Adatipd.Web.CreatorLayout
 
-import Adatipd.Cardano (Lovelace (..), formatAda)
+import Adatipd.Cardano (Lovelace (..), formatAdaWithSymbol)
 import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.NotFound (handleNotFound)
@@ -23,6 +23,7 @@ import qualified Data.Vector as Vector (fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
+import qualified Text.Blaze.Internal as HB (textBuilder)
 
 --------------------------------------------------------------------------------
 -- Retrieving tiers
@@ -106,4 +107,4 @@ renderTier Tier {..} =
       HH.a
         ! HA.class_ "-subscribe"
         ! HA.href "javascript:void(0)"
-        $ "Subscribe for " *> HB.string (formatAda tCost)
+        $ "Subscribe for " *> HB.textBuilder (formatAdaWithSymbol tCost)
