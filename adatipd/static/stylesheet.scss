@@ -1,0 +1,114 @@
+@import "reset";
+
+// Some elements may be wider for aesthetic reasons,
+// but actual content should not stretch beyond this.
+$page-width: 960px;
+
+// This is used for line heights and paddings.
+@function size($value)
+{
+    @return $value * 1.61803;
+}
+
+// Center the element on the page.
+// Give it the width expected of such elements.
+@mixin center-content
+{
+    margin-left: auto;
+    margin-right: auto;
+    width: $page-width;
+}
+
+// Add a margin between the element and the creator tabs.
+@mixin creator-tabs-content-margin
+{
+    margin-top: size(1rem);
+}
+
+// Add a dotted line between each pair of articles.
+@mixin article-divider
+{
+    &:not(:first-child)
+    {
+        $divider-width: 1px;
+        border-top: dashed $divider-width var(--subtle-highlight-color);
+        padding-top: calc(#{size(1rem)} - #{$divider-width});
+    }
+}
+
+// Style the title of an article.
+@mixin article-title
+{
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: size(1em);
+}
+
+// Style regular old text.
+@mixin rich-text
+{
+    line-height: size(1em);
+
+    & strong
+    {
+        font-weight: bold;
+    }
+}
+
+*
+{
+    // I forgot why I always do this.
+    box-sizing: border-box;
+}
+
+body
+{
+    // Color scheme.
+    --primary-color: #001AA5;
+    --secondary-color: orange;
+    --subtle-highlight-color: #EEEEEE;
+
+    // This may be overridden by the page using a style attribute.
+    --creator-banner-image: url("/static/default-creator-banner-image.jpg");
+
+    background-color: white;
+
+    // The following displays a horizontal grid that helps align text.
+    // You can toggle it on/off in the inspector on the body element.
+    /*
+    background-image:
+        linear-gradient(
+            transparent 0,
+            transparent calc(#{size(1rem)} - 1px),
+            silver      calc(#{size(1rem)} - 1px),
+            silver      #{size(1rem)}
+        );
+    */
+    background-size: 1px size(1rem);
+
+    color: black;
+    font-family: "Roboto", sans-serif;
+}
+
+// This is the bar at the top of the page.
+// It contains instance-wide navigation.
+.page-header
+{
+    background: var(--primary-color);
+    padding: size(0.5rem);
+}
+
+// Title of the instance that links to home.
+.page-header > .-instance-title
+{
+    color: white;
+    font-weight: bold;
+    line-height: size(1em);
+    text-decoration: none;
+}
+
+@import "creator-banner";
+@import "creator-tabs";
+@import "creator-posts";
+@import "creator-tip-suggestions";
+@import "creator-tiers";
