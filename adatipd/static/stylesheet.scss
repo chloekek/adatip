@@ -57,18 +57,18 @@ $page-width: 960px;
 
 *
 {
-    /* I forgot why I always do this. */
+    // I forgot why I always do this.
     box-sizing: border-box;
 }
 
 body
 {
-    /* Color scheme. */
+    // Color scheme.
     --primary-color: #001AA5;
     --secondary-color: orange;
     --subtle-highlight-color: #EEEEEE;
 
-    /* This may be overridden by the page using a style attribute. */
+    // This may be overridden by the page using a style attribute.
     --creator-banner-image: url("/static/default-creator-banner-image.jpg");
 
     background-color: white;
@@ -90,15 +90,15 @@ body
     font-family: "Roboto", sans-serif;
 }
 
-/* This is the bar at the top of the page.
-   It contains instance-wide navigation. */
+// This is the bar at the top of the page.
+// It contains instance-wide navigation.
 .page-header
 {
     background: var(--primary-color);
     padding: size(0.5rem);
 }
 
-/* Title of the instance that links to home. */
+// Title of the instance that links to home.
 .page-header > .-instance-title
 {
     color: white;
