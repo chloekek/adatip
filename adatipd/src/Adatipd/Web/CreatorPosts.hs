@@ -120,5 +120,7 @@ renderPost Post {..} =
           VideoAttachment -> HH.p "(todo: video attachment)"
 
     HH.footer ! HA.class_ "-footer" $ do
-      HH.time ! HA.datetime (HB.toValue (iso8601Show pPublishedAbsolute)) $
-        HB.string (show pPublishedRelative) *> " ago"
+      HH.time
+        ! HA.datetime (HB.toValue (iso8601Show pPublishedAbsolute))
+        ! HA.title (HB.toValue (iso8601Show pPublishedAbsolute))
+        $ HB.string (show pPublishedRelative) *> " ago"
