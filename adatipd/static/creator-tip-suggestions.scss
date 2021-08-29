@@ -66,6 +66,12 @@
             }
         }
 
+        & > .-qr-code
+        {
+            // Use nearest neighbor scaling for QR codes.
+            image-rendering: crisp-edges;
+        }
+
         & > .-address
         {
             font-family: monospace;
