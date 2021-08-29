@@ -41,6 +41,7 @@ library
         Adatipd.Web
         Adatipd.Web.CreatorLayout
         Adatipd.Web.CreatorPosts
+        Adatipd.Web.CreatorTiers
         Adatipd.Web.CreatorTipSuggestions
         Adatipd.Web.Layout
         Adatipd.Web.NotFound

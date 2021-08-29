@@ -21,7 +21,22 @@ body
     /* This may be overridden by the page using a style attribute. */
     --creator-banner-image: url("/static/default-creator-banner-image.jpg");
 
-    background: white;
+    background-color: white;
+
+    /* The following displays a horizontal grid
+       that helps vertically align text.
+       You can toggle it on/off in the inspector. */
+    /*
+    background-image:
+        linear-gradient(
+            transparent 0,
+            transparent calc(var(--size-unit) - 1px),
+            silver      calc(var(--size-unit) - 1px),
+            silver      calc(var(--size-unit))
+        );
+    */
+    background-size: 1px var(--size-unit);
+
     color: black;
     font-family: "Roboto", sans-serif;
 }
@@ -97,6 +112,12 @@ body
     line-height: var(--size-unit);
     margin: 0 calc(3 * var(--size-unit));
     padding: calc(0.5 * var(--size-unit)) var(--size-unit);
+
+    /* Bottom padding must be 2px less
+       to compensate for the border
+       added with the -selected class. */
+    padding-bottom: calc(0.5 * var(--size-unit) - 2px);
+
     text-decoration: none;
 }
 
@@ -115,7 +136,9 @@ body
 .creator-posts > article:not(:first-child)
 {
     border-top: dashed 1px var(--subtle-highlight-color);
-    padding-top: calc(0.5 * var(--size-unit));
+
+    /* Subtract 1px to compensate for the border. */
+    padding-top: calc(var(--size-unit) - 1px);
 }
 
 .creator-posts > article > .-header > h1
@@ -133,6 +156,7 @@ body
 
 .creator-posts > article > .-attachments
 {
+    line-height: var(--size-unit);
     margin-bottom: var(--size-unit);
 }
 
@@ -202,7 +226,7 @@ body
 .creator-tip-suggestions > article > .-header > .-amount
 {
     background: var(--primary-color);
-    border-radius: calc(var(--size-unit));
+    border-radius: var(--size-unit);
     color: white;
     margin-left: calc(0.5 * var(--size-unit));
     padding: 0 calc(0.5 * var(--size-unit));
@@ -216,4 +240,60 @@ body
     /* Center the content within the box. */
     margin: 0 auto;
     width: calc(var(--content-width) / 3);
+}
+
+.creator-tiers
+{
+    /* Center the content on the page. */
+    margin: 0 auto;
+    width: var(--content-width);
+}
+
+.creator-tiers > article:not(:first-child)
+{
+    border-top: dashed 1px var(--subtle-highlight-color);
+
+    /* Subtract 1px to compensate for the border. */
+    padding-top: calc(var(--size-unit) - 1px);
+}
+
+.creator-tiers > article > .-header > h1
+{
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: calc(2 * var(--size-unit));
+}
+
+.creator-tiers > article > .-description
+{
+    line-height: var(--size-unit);
+    margin-bottom: var(--size-unit);
+}
+
+.creator-tiers > article > .-footer
+{
+    display: flex;
+    justify-content: space-between;
+    line-height: var(--size-unit);
+    margin-bottom: var(--size-unit);
+}
+
+.creator-tiers > article > .-footer > .-subscribers
+{
+    font-weight: bold;
+}
+
+.creator-tiers > article > .-footer > .-subscribe
+{
+    background: var(--primary-color);
+    border-radius: calc(0.5 * var(--size-unit));
+    color: white;
+    font-weight: bold;
+    padding: 0 calc(0.5 * var(--size-unit));
+    text-decoration: none;
+}
+
+.creator-tiers > article > .-footer > .-subscribe:hover
+{
+    background: var(--secondary-color);
 }

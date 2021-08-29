@@ -5,7 +5,7 @@ module Adatipd.Web.NotFound
   , renderNotFound
   ) where
 
-import Adatipd.Options (Options (..))
+import Adatipd.Options (Options)
 import Adatipd.Web.Layout (renderLayout)
 import Network.HTTP.Types.Status (status404)
 import Text.Blaze (Markup)

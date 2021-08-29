@@ -7,7 +7,7 @@ module Adatipd.Web.CreatorPosts
 import Adatipd.Web.CreatorLayout
 
 import Adatipd.Nickname (Nickname)
-import Adatipd.Options (Options (..))
+import Adatipd.Options (Options)
 import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
