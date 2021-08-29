@@ -16,10 +16,12 @@ import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
 import Text.Blaze (Markup, (!))
 
+import qualified Adatipd.Cardano as Cardano (paymentUri)
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Codec.QRCode as Qr
 import qualified Codec.QRCode.JuicyPixels as Qr
+import qualified Data.Text.Lazy.Builder as TLB (toLazyText)
 import qualified Data.Vector as Vector (fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
@@ -107,15 +109,11 @@ renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
 renderTipSuggestion :: TipSuggestion -> Markup
 renderTipSuggestion TipSuggestion {..} = do
 
-  -- This is the standard format for Cardano addresses.
-  -- All wallets with QR code functionality should support it.
-  let formattedAddress =
-        formatBech32 tsAddress
-
   -- High error correction leads to an enormous QR code.
   -- Medium should be good enough? I don’t really know.
   let qrOptions = Qr.defaultQRCodeOptions Qr.M
-      qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 formattedAddress
+      qrText = TLB.toLazyText (Cardano.paymentUri tsAddress tsAmount)
+      qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
       qrImagePng = Qr.toPngDataUrlT 4 8 <$> qrImage
 
   HH.article $ do
@@ -135,4 +133,4 @@ renderTipSuggestion TipSuggestion {..} = do
           ! HA.src (HB.lazyTextValue qrImagePng')
 
     HH.section ! HA.class_ "-address" $
-      HB.text formattedAddress
+      HB.text (formatBech32 tsAddress)
