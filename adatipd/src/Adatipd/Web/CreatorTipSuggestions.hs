@@ -35,6 +35,7 @@ import qualified Text.Blaze.Internal as HB (textBuilder)
 data CreatorTipSuggestions =
   CreatorTipSuggestions
     { ctsCreatorInfo :: CreatorInfo
+    , ctsTipAddress :: Address
     , ctsTipSuggestions :: Vector TipSuggestion }
 
 data TipSuggestion =
@@ -44,19 +45,19 @@ data TipSuggestion =
       -- ^ A tip suggestion may have no specified amount.
     , tsQrImage :: Maybe QRImage
       -- ^ QR code creation may fail, so this is 'Maybe'.
-    , tsAddress :: Address }
+    }
 
 -- |
 -- Create a tip suggestion from its parameters.
 -- QR image will be generated automatically
 -- and does not need to be given to this function.
 mkTipSuggestion :: Text -> Maybe Lovelace -> Address -> TipSuggestion
-mkTipSuggestion tsTitle tsAmount tsAddress =
+mkTipSuggestion tsTitle tsAmount address =
   let
     -- High error correction leads to an enormous QR code.
     -- Medium should be good enough? I don’t really know.
     qrOptions = Qr.defaultQRCodeOptions Qr.M
-    qrText = TLB.toLazyText (Cardano.paymentUri tsAddress tsAmount)
+    qrText = TLB.toLazyText (Cardano.paymentUri address tsAmount)
     tsQrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
   in
     TipSuggestion {..}
@@ -84,44 +85,26 @@ fetchCreatorTipSuggestions sqlConn nickname = do
   -- If there are no tip suggestions,
   -- generate a default one with no suggested amount.
 
+  let addr =
+        Address
+          "addr1qy7h4lxjsn7cz95gen79upe3lls6wlqn35m\
+          \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
+          \6pfj6qu4fj8dmr4tsa3g6qz"
+
   case creatorInfo of
     Nothing -> pure Nothing
     Just ctsCreatorInfo ->
       pure . Just $
         CreatorTipSuggestions
           { ctsCreatorInfo
+          , ctsTipAddress = addr
           , ctsTipSuggestions =
               Vector.fromList
-                [ mkTipSuggestion
-                    "Koffie"
-                    (Just (Lovelace 1000000))
-                    (Address "addr1qy7h4lxjsn7cz95gen79upe3lls6wlqn35m\
-                              \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
-                              \6pfj6qu4fj8dmr4tsa3g6qz")
-                , mkTipSuggestion
-                    "Chips"
-                    (Just (Lovelace 2000000))
-                    (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
-                              \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
-                              \6pfj6qu4fj8dmr4ts6ednhv")
-                , mkTipSuggestion
-                    "Boterham"
-                    (Just (Lovelace 3000000))
-                    (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
-                              \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
-                              \6pfj6qu4fj8dmr4ts6ednhv")
-                , mkTipSuggestion
-                    "Mag ik een cola?"
-                    (Just (Lovelace 4000000))
-                    (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
-                              \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
-                              \6pfj6qu4fj8dmr4ts6ednhv")
-                , mkTipSuggestion
-                    "Support me!"
-                    Nothing
-                    (Address "addr1q8g690sm5t32j3xk24456dmeaye9yvv5t60\
-                              \s6wtqry58p7dl5fedzlcnfduhaqlqnyamuyt8apy\
-                              \6pfj6qu4fj8dmr4ts6ednhv") ] }
+                [ mkTipSuggestion "Koffie" (Just (Lovelace 1000000)) addr
+                , mkTipSuggestion "Chips" (Just (Lovelace 2000000)) addr
+                , mkTipSuggestion "Boterham" (Just (Lovelace 3000000)) addr
+                , mkTipSuggestion "Mag ik een cola?" (Just (Lovelace 4000000)) addr
+                , mkTipSuggestion "Support me!" Nothing addr ] }
 
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
 renderCreatorTipSuggestions options@Options {..} CreatorTipSuggestions {..} =
@@ -137,10 +120,10 @@ renderCreatorTipSuggestions options@Options {..} CreatorTipSuggestions {..} =
         "Note that tips do not grant access to exclusive content."
         HH.br
         HH.text oInstanceTitle *> " will not charge you for sending tips."
-      traverse_ renderTipSuggestion ctsTipSuggestions
+      traverse_ (renderTipSuggestion ctsTipAddress) ctsTipSuggestions
 
-renderTipSuggestion :: TipSuggestion -> Markup
-renderTipSuggestion TipSuggestion {..} =
+renderTipSuggestion :: Address -> TipSuggestion -> Markup
+renderTipSuggestion tipAddress TipSuggestion {..} =
 
   HH.article $ do
 
@@ -164,4 +147,4 @@ renderTipSuggestion TipSuggestion {..} =
           ! HA.src (HB.lazyTextValue qrImagePng)
 
     HH.section ! HA.class_ "-address" $
-      HB.text (formatBech32 tsAddress)
+      HB.text (formatBech32 tipAddress)
