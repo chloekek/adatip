@@ -112,7 +112,7 @@ renderTipSuggestion TipSuggestion {..} = do
   let formattedAddress =
         formatBech32 tsAddress
 
-  -- High error connection leads to an enormous QR code.
+  -- High error correction leads to an enormous QR code.
   -- Medium should be good enough? I don’t really know.
   let qrOptions = Qr.defaultQRCodeOptions Qr.M
       qrImage = Qr.encodeText qrOptions Qr.Iso8859_1 formattedAddress
