@@ -8,7 +8,7 @@ import Adatipd.Web.CreatorLayout
 
 import Adatipd.Cardano (Address (..), Lovelace (..), formatAdaWithSymbol, formatBech32)
 import Adatipd.Nickname (Nickname)
-import Adatipd.Options (Options)
+import Adatipd.Options (Options (..))
 import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (traverse_)
 import Data.Text (Text)
@@ -94,7 +94,7 @@ fetchCreatorTipSuggestions sqlConn nickname = do
                               \6pfj6qu4fj8dmr4ts6ednhv") ] }
 
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
-renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
+renderCreatorTipSuggestions options@Options {..} CreatorTipSuggestions {..} =
   renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
     HH.section ! HA.class_ "creator-tip-suggestions" $ do
       HH.p ! HA.class_ "-tutorial" $ do
@@ -105,6 +105,8 @@ renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
         "The amounts shown are suggestions; you may tip any amount."
         HH.br
         "Note that tips do not grant access to exclusive content."
+        HH.br
+        HH.text oInstanceTitle *> " will not charge you for sending tips."
       traverse_ renderTipSuggestion ctsTipSuggestions
 
 renderTipSuggestion :: TipSuggestion -> Markup
