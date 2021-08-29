@@ -1,3 +1,5 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 module Adatipd.Cardano
   ( -- * Addresses
     Address (..)
@@ -6,10 +8,16 @@ module Adatipd.Cardano
     -- * Amounts
   , Lovelace (..)
   , formatAda
+
+    -- * Payment URIs
+  , paymentUri
   ) where
 
 import Data.Scientific (FPFormat (Fixed), formatScientific, scientific)
-import Data.Text (Text)
+import Data.Text.Lazy.Builder.Scientific (formatScientificBuilder)
+
+import qualified Data.Text as T (Text)
+import qualified Data.Text.Lazy.Builder as TLB (Builder, fromText)
 
 --------------------------------------------------------------------------------
 -- Addresses
@@ -17,9 +25,9 @@ import Data.Text (Text)
 -- TODO: Address format should be restricted to Bech32 strings.
 --       (Probably means making the constructor private.)
 newtype Address =
-  Address Text
+  Address T.Text
 
-formatBech32 :: Address -> Text
+formatBech32 :: Address -> T.Text
 formatBech32 (Address bech32) = bech32
 
 --------------------------------------------------------------------------------
@@ -39,3 +47,16 @@ formatAda (Lovelace lovelace) =
         (scientific lovelace (-6))
   in
     "₳" <> decimal
+
+--------------------------------------------------------------------------------
+-- Payment URIs
+
+-- |
+-- Construct a CIP 13 [1] URI for Cardano payments.
+-- [1]: https://cips.cardano.org/cips/cip13/
+paymentUri :: Address -> Lovelace -> TLB.Builder
+paymentUri address (Lovelace lovelace) =
+  "web+cardano:"
+  <> TLB.fromText (formatBech32 address)
+  <> "?amount="
+  <> formatScientificBuilder Fixed Nothing (scientific lovelace (-6))
