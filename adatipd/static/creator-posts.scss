@@ -28,5 +28,11 @@
             @include rich-text;
             margin-bottom: size(1rem);
         }
+
+        & > .-footer
+        {
+            @include rich-text;
+            margin-bottom: size(1rem);
+        }
     }
 }

@@ -11,6 +11,8 @@ import Adatipd.Options (Options)
 import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
+import Data.Time.Clock (NominalDiffTime, UTCTime, getCurrentTime, secondsToNominalDiffTime)
+import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
 import Text.Blaze (Markup, (!))
@@ -34,6 +36,8 @@ data Post =
   Post
     { pTitle :: Text
     , pContent :: Text
+    , pPublishedAbsolute :: UTCTime
+    , pPublishedRelative :: NominalDiffTime
     , pAttachments :: Vector Attachment }
 
 data Attachment
@@ -44,6 +48,7 @@ data Attachment
 fetchCreatorPosts :: Sql.Connection -> Nickname -> IO (Maybe CreatorPosts)
 fetchCreatorPosts sqlConn nickname = do
   creatorInfo <- fetchCreatorInfo sqlConn nickname
+  time <- getCurrentTime
   case creatorInfo of
     Nothing -> pure Nothing
     Just chCreatorInfo ->
@@ -52,13 +57,29 @@ fetchCreatorPosts sqlConn nickname = do
           { chCreatorInfo
           , chMostRecentPosts =
               Vector.fromList
-                [ Post "Vlog Friday #42!" "Alweer een nieuwe vlog."
+                [ Post
+                    "Vlog Friday #42!"
+                    "Alweer een nieuwe vlog."
+                    time
+                    (secondsToNominalDiffTime 3600)
                     (Vector.fromList [ VideoAttachment ])
-                , Post "Programming Podcast #3" "Vandaag praten we over Haskell."
+                , Post
+                    "Programming Podcast #3"
+                    "Vandaag praten we over Haskell."
+                    time
+                    (secondsToNominalDiffTime 7200)
                     (Vector.fromList [ AudioAttachment ])
-                , Post "Programming Podcast #2" "Vandaag praten we over Haskell."
+                , Post
+                    "Programming Podcast #2"
+                    "Vandaag praten we over Haskell."
+                    time
+                    (secondsToNominalDiffTime 290000)
                     (Vector.fromList [ AudioAttachment ])
-                , Post "Programming Podcast #1" "Vandaag praten we over Haskell."
+                , Post
+                    "Programming Podcast #1"
+                    "Vandaag praten we over Haskell."
+                    time
+                    (secondsToNominalDiffTime 3498300)
                     (Vector.fromList [ AudioAttachment ]) ] }
 
 --------------------------------------------------------------------------------
@@ -97,3 +118,7 @@ renderPost Post {..} =
           ImageAttachment -> HH.p "(todo: image attachment)"
           AudioAttachment -> HH.p "(todo: audio attachment)"
           VideoAttachment -> HH.p "(todo: video attachment)"
+
+    HH.footer ! HA.class_ "-footer" $ do
+      HH.time ! HA.datetime (HB.toValue (iso8601Show pPublishedAbsolute)) $
+        HB.string (show pPublishedRelative) *> " ago"
