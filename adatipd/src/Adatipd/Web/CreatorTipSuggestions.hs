@@ -79,6 +79,11 @@ fetchCreatorTipSuggestions
   :: Sql.Connection -> Nickname -> IO (Maybe CreatorTipSuggestions)
 fetchCreatorTipSuggestions sqlConn nickname = do
   creatorInfo <- fetchCreatorInfo sqlConn nickname
+
+  -- TODO:
+  -- If there are no tip suggestions,
+  -- generate a default one with no suggested amount.
+
   case creatorInfo of
     Nothing -> pure Nothing
     Just ctsCreatorInfo ->
