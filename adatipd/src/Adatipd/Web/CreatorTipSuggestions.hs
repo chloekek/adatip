@@ -46,6 +46,10 @@ data TipSuggestion =
       -- ^ QR code creation may fail, so this is 'Maybe'.
     , tsAddress :: Address }
 
+-- |
+-- Create a tip suggestion from its parameters.
+-- QR image will be generated automatically
+-- and does not need to be given to this function.
 mkTipSuggestion :: Text -> Maybe Lovelace -> Address -> TipSuggestion
 mkTipSuggestion tsTitle tsAmount tsAddress =
   let
