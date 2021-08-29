@@ -6,7 +6,7 @@ module Adatipd.Web.CreatorTipSuggestions
 
 import Adatipd.Web.CreatorLayout
 
-import Adatipd.Cardano (Address (..), Lovelace (..), formatAda, formatBech32)
+import Adatipd.Cardano (Address (..), Lovelace (..), formatAdaWithSymbol, formatBech32)
 import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options)
 import Adatipd.Web.NotFound (handleNotFound)
@@ -26,6 +26,7 @@ import qualified Data.Vector as Vector (fromList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
+import qualified Text.Blaze.Internal as HB (textBuilder)
 
 --------------------------------------------------------------------------------
 -- Retrieving tip suggestions
@@ -119,8 +120,10 @@ renderTipSuggestion TipSuggestion {..} = do
   HH.article $ do
 
     HH.header ! HA.class_ "-header" $ do
-      HH.h1 ! HA.class_ "-title" $ HB.text tsTitle
-      HH.p ! HA.class_ "-amount" $ HB.string (formatAda tsAmount)
+      HH.h1 ! HA.class_ "-title" $
+        HB.text tsTitle
+      HH.p ! HA.class_ "-amount" $
+        HB.textBuilder (formatAdaWithSymbol tsAmount)
 
     case qrImagePng of
       Nothing ->
