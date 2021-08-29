@@ -1,0 +1,39 @@
+// These are the tabs under the creator’s banner
+// that link to the posts, tips, and tiers.
+
+.creator-tabs
+{
+    background: var(--subtle-highlight-color);
+
+    display: flex;
+    justify-content: center;
+
+    & > a
+    {
+        // When a tab is selected, we draw a border under it.
+        // This specifies how wide that border should be.
+        $selected-border-width: 2px;
+
+        color: var(--primary-color);
+
+        font-weight: bold;
+        line-height: size(1em);
+        text-decoration: none;
+
+        // Add some space between the tabs.
+        margin: 0 size(3em);
+
+        // Make the tabs easer to click.
+        padding-left: size(1em);
+        padding-right: size(1em);
+
+        // Make the tabs look nicer by adding padding above and below.
+        padding-top: size(0.5em);
+        padding-bottom: calc(#{size(0.5em)} - #{$selected-border-width});
+
+        &.-selected
+        {
+            border-bottom: solid $selected-border-width var(--secondary-color);
+        }
+    }
+}
