@@ -58,6 +58,7 @@ library
         qrcode-juicypixels,
         scientific,
         text,
+        time,
         vector,
         wai
 
