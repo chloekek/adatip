@@ -11,7 +11,9 @@ import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.NotFound (handleNotFound)
 import Codec.QRCode (QRImage)
+import Control.Monad (when)
 import Data.Foldable (for_, traverse_)
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
@@ -35,6 +37,10 @@ import qualified Text.Blaze.Internal as HB (textBuilder)
 data CreatorTipSuggestions =
   CreatorTipSuggestions
     { ctsCreatorInfo :: CreatorInfo
+    , ctsShowAmountsNonBindingNotice :: Bool
+      -- ^
+      -- Whether to show a notice about amounts being non-binding.
+      -- This should only be shown when there are tip suggestions with amounts.
     , ctsTipAddress :: Address
     , ctsTipSuggestions :: Vector TipSuggestion }
 
@@ -91,6 +97,14 @@ fetchCreatorTipSuggestions sqlConn nickname = do
           \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
           \6pfj6qu4fj8dmr4tsa3g6qz"
 
+  let tipsuggs =
+        Vector.fromList
+          [ mkTipSuggestion "Koffie" (Just (Lovelace 1000000)) addr
+          , mkTipSuggestion "Chips" (Just (Lovelace 2000000)) addr
+          , mkTipSuggestion "Boterham" (Just (Lovelace 3000000)) addr
+          , mkTipSuggestion "Mag ik een cola?" (Just (Lovelace 4000000)) addr
+          , mkTipSuggestion "Support me!" Nothing addr ]
+
   case creatorInfo of
     Nothing -> pure Nothing
     Just ctsCreatorInfo ->
@@ -98,29 +112,34 @@ fetchCreatorTipSuggestions sqlConn nickname = do
         CreatorTipSuggestions
           { ctsCreatorInfo
           , ctsTipAddress = addr
-          , ctsTipSuggestions =
-              Vector.fromList
-                [ mkTipSuggestion "Koffie" (Just (Lovelace 1000000)) addr
-                , mkTipSuggestion "Chips" (Just (Lovelace 2000000)) addr
-                , mkTipSuggestion "Boterham" (Just (Lovelace 3000000)) addr
-                , mkTipSuggestion "Mag ik een cola?" (Just (Lovelace 4000000)) addr
-                , mkTipSuggestion "Support me!" Nothing addr ] }
+          , ctsShowAmountsNonBindingNotice =
+              any (\TipSuggestion {..} -> isJust tsAmount) tipsuggs
+          , ctsTipSuggestions = tipsuggs }
 
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
-renderCreatorTipSuggestions options@Options {..} CreatorTipSuggestions {..} =
+renderCreatorTipSuggestions options cts@CreatorTipSuggestions {..} =
   renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
     HH.section ! HA.class_ "creator-tip-suggestions" $ do
-      HH.p ! HA.class_ "-tutorial" $ do
-        "Feeling generous? Send "
-        HH.strong $ HB.text (ciName ctsCreatorInfo)
-        " a tip! 😍"
-        HH.br
-        "The amounts shown are suggestions; you may tip any amount."
-        HH.br
-        "Note that tips do not grant access to exclusive content."
-        HH.br
-        HH.text oInstanceTitle *> " will not charge you for sending tips."
+      renderTipTutorial options cts
       traverse_ (renderTipSuggestion ctsTipAddress) ctsTipSuggestions
+
+renderTipTutorial :: Options -> CreatorTipSuggestions -> Markup
+renderTipTutorial Options {..} CreatorTipSuggestions {..} =
+  HH.p ! HA.class_ "-tutorial" $ do
+
+    "Feeling generous? Send "
+    HH.strong $ HB.text (ciName ctsCreatorInfo)
+    " a tip! 😍"
+    HH.br
+
+    when ctsShowAmountsNonBindingNotice $ do
+      "The amounts shown are suggestions; you may tip any amount."
+      HH.br
+
+    "Note that tips do not grant access to exclusive content."
+    HH.br
+
+    HH.text oInstanceTitle *> " will not charge you for sending tips."
 
 renderTipSuggestion :: Address -> TipSuggestion -> Markup
 renderTipSuggestion tipAddress TipSuggestion {..} =
