@@ -61,7 +61,11 @@ mkTipSuggestion :: Text -> Maybe Lovelace -> Address -> TipSuggestion
 mkTipSuggestion tsTitle tsAmount address =
   let
     -- High error correction leads to an enormous QR code.
-    -- Medium should be good enough? I don’t really know.
+    -- Medium should be plenty; people will scan this with their phone from a
+    -- monitor, not from a badly printed piece of paper with coffee stains on
+    -- it. And also, a bech32 address has a checksum in it, so even if the QR
+    -- code fails to transfer properly, it will not suddenly transfer to the
+    -- wrong address.
     qrOptions = Qr.defaultQRCodeOptions Qr.M
     qrText = TLB.toLazyText (Cardano.paymentUri address tsAmount)
     tsQrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
