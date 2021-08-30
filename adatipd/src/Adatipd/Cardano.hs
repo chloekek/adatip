@@ -7,7 +7,6 @@ module Adatipd.Cardano
 
     -- * Amounts
   , Lovelace (..)
-  , lovelaceToAda
   , formatAdaDecimal
   , formatAdaWithSymbol
 
@@ -15,7 +14,7 @@ module Adatipd.Cardano
   , paymentUri
   ) where
 
-import Data.Scientific (FPFormat (Fixed), Scientific, scientific)
+import Data.Scientific (FPFormat (Fixed), scientific)
 import Data.Text.Lazy.Builder.Scientific (formatScientificBuilder)
 
 import qualified Data.Text as T (Text)
@@ -40,19 +39,17 @@ newtype Lovelace =
   deriving stock (Show)
 
 -- |
--- Convert an amount to its Ada value.
-lovelaceToAda :: Lovelace -> Scientific
-lovelaceToAda (Lovelace lovelace) =
-  scientific lovelace (-6)
-
--- |
 -- Format an amount as its Ada value.
 formatAdaDecimal :: Lovelace -> TLB.Builder
-formatAdaDecimal lovelace =
-  formatScientificBuilder
-    Fixed   -- Standard decimal notation.
-    Nothing -- Do not restrict number of decimals.
-    (lovelaceToAda lovelace)
+formatAdaDecimal (Lovelace lovelace) =
+  let
+    -- Ada = 1_000_000 Lovelace.
+    ada = scientific lovelace (-6)
+  in
+    formatScientificBuilder
+      Fixed   -- Standard decimal notation.
+      Nothing -- Do not restrict number of decimals.
+      ada
 
 -- |
 -- Format an amount as its Ada value
