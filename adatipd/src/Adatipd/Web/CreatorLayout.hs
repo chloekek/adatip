@@ -42,9 +42,13 @@ fetchCreatorInfo sqlConn nickname =
   Sql.runSession sqlConn $
     Sql.statement nickname $
       Sql.Statement
-        "SELECT 'Henk de Test', biography\n\
-        \FROM creators\n\
-        \WHERE nickname = $1"
+        "SELECT\n\
+        \  creator_current_name(id),\n\
+        \  creator_current_biography(id)\n\
+        \FROM\n\
+        \  creators\n\
+        \WHERE\n\
+        \  nickname = $1"
         encodeNickname
         (SqlDec.rowMaybe decodeCreatorInfo)
         False
