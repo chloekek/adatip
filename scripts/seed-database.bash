@@ -15,14 +15,36 @@ psql <<'SQL'
 
 \set ON_ERROR_STOP
 
+START TRANSACTION;
+
 INSERT INTO creators
-    (id, nickname, biography)
+    (id, nickname)
 VALUES
     ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
-    , 'henkdevries'
+    , 'henkdevries' ),
+    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6'
+    , 'cookingwithalex' );
+
+INSERT INTO creator_names
+    (creator_id, created, name)
+VALUES
+    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
+    , now()
+    , 'Henk de Vries' ),
+    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6'
+    , now()
+    , 'Cooking with Alex' );
+
+INSERT INTO creator_biographies
+    (creator_id, created, biography)
+VALUES
+    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
+    , now()
     , 'Hallo, ik ben Henk de Vries!' ),
     ( '584c76d5-d016-4c17-9cd7-bc469cec43f6'
-    , 'cookingwithalex'
+    , now()
     , 'Join me in my kitchen! I post weekly cooking videos.' );
+
+COMMIT WORK;
 
 SQL
