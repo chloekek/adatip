@@ -1,0 +1,38 @@
+// The posts page of a creator.
+
+.creator-posts
+{
+    @include center-content;
+    @include creator-tabs-content-margin;
+
+    & > article
+    {
+        @include article-divider;
+
+        & > .-header > h1
+        {
+            @include article-title;
+        }
+
+        & > .-content
+        {
+            @include rich-text;
+            margin-bottom: size(1rem);
+        }
+
+        & > .-attachments
+        {
+            // TODO:
+            // This shouldn’t be rich text,
+            // but for now we just have a placeholder.
+            @include rich-text;
+            margin-bottom: size(1rem);
+        }
+
+        & > .-footer
+        {
+            @include rich-text;
+            margin-bottom: size(1rem);
+        }
+    }
+}
