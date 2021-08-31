@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 # This file is used by Hivemind.
 # Hivemind is a process supervisor
 # for development environments.

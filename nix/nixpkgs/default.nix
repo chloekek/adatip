@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 let
     # Read version and hash from pinned.toml file.
     pinned = fromTOML (builtins.readFile ./pinned.toml);

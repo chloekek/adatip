@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: AGPL-3.0-only
 
 """
 Verify that all migrations are numbered, and that there is only one migration

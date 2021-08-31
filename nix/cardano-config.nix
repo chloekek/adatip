@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+
 { nixpkgs ? import ./nixpkgs }:
 let
   # Cardano config files for mainnet and devnet are hosted at
