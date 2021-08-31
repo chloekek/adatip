@@ -1,3 +1,5 @@
+-- SPDX-License-Identifier: AGPL-3.0-only
+
 {-# LANGUAGE OverloadedStrings #-}
 
 module Adatipd.Web.CreatorTiers

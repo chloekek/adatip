@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # This script inserts useful test data into the database.
 # PostgreSQL must already be running, and migrations must already be run.

@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # This script sets up the database and roles.
 # When you run this script, PostgreSQL must already be running.

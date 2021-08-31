@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: AGPL-3.0-only
 
 # This script forwards all arguments to dbmate [1].
 # It first configures dbmate so it can connect.
