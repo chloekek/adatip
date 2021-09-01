@@ -9,9 +9,8 @@ module Adatipd.Web.CreatorTiers
 import Adatipd.Web.CreatorLayout
 
 import Adatipd.Cardano (Lovelace (..), formatAdaWithSymbol)
-import Adatipd.Nickname (Nickname)
+import Adatipd.Creator (CreatorId)
 import Adatipd.Options (Options (..))
-import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (traverse_)
 import Data.Int (Int64)
 import Data.Text (Text)
@@ -42,20 +41,16 @@ data Tier =
     , tCost :: Lovelace
     , tPosts :: Int64 }
 
-fetchCreatorTiers :: Sql.Connection -> Nickname -> IO (Maybe CreatorTiers)
-fetchCreatorTiers sqlConn nickname = do
-  creatorInfo <- fetchCreatorInfo sqlConn nickname
-  case creatorInfo of
-    Nothing -> pure Nothing
-    Just ctCreatorInfo ->
-      pure . Just $
-        CreatorTiers
-          { ctCreatorInfo
-          , ctTiers =
-              Vector.fromList
-                [ Tier "Henk Tier #1" lipsum (Lovelace 1_000_000) 40
-                , Tier "Henk Tier #2" lipsum (Lovelace 2_000_000) 35
-                , Tier "Henk Tier #3" lipsum (Lovelace 3_500_000) 6 ] }
+fetchCreatorTiers :: Sql.Connection -> CreatorId -> IO CreatorTiers
+fetchCreatorTiers sqlConn creatorId = do
+  creatorInfo <- fetchCreatorInfo sqlConn creatorId
+  pure CreatorTiers
+    { ctCreatorInfo = creatorInfo
+    , ctTiers =
+        Vector.fromList
+          [ Tier "Henk Tier #1" lipsum (Lovelace 1_000_000) 40
+          , Tier "Henk Tier #2" lipsum (Lovelace 2_000_000) 35
+          , Tier "Henk Tier #3" lipsum (Lovelace 3_500_000) 6 ] }
 
 lipsum :: Text
 lipsum =
@@ -74,15 +69,12 @@ lipsum =
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorTiers :: Options -> Sql.Connection -> Nickname -> Wai.Application
-handleCreatorTiers options sqlConn nickname request writeResponse =
-  fetchCreatorTiers sqlConn nickname >>= \case
-    Nothing ->
-      handleNotFound options request writeResponse
-    Just creatorTiers ->
-      writeResponse $
-        Wai.responseHtml status200 [] $
-          renderCreatorTiers options creatorTiers
+handleCreatorTiers :: Options -> Sql.Connection -> CreatorId -> Wai.Application
+handleCreatorTiers options sqlConn creatorId _request writeResponse = do
+  creatorTiers <- fetchCreatorTiers sqlConn creatorId
+  writeResponse $
+    Wai.responseHtml status200 [] $
+      renderCreatorTiers options creatorTiers
 
 renderCreatorTiers :: Options -> CreatorTiers -> Markup
 renderCreatorTiers options CreatorTiers {..} =

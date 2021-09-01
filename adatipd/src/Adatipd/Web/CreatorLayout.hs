@@ -15,59 +15,16 @@ module Adatipd.Web.CreatorLayout
   ) where
 
 import Adatipd.Nickname (Nickname)
+import Adatipd.Creator (CreatorInfo (..), fetchCreatorInfo)
 import Adatipd.Options (Options)
 import Adatipd.Web.Layout (renderLayout)
-import Data.Functor.Contravariant ((>$<))
 import Data.Text (Text)
 import Text.Blaze (Markup, (!))
 
-import qualified Adatipd.Nickname as Nickname (format, formatUriComponent)
-import qualified Adatipd.Sql as Sql
-import qualified Hasql.Decoders as SqlDec
-import qualified Hasql.Encoders as SqlEnc
+import qualified Adatipd.Nickname as Nickname (formatUriComponent)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
-
---------------------------------------------------------------------------------
--- Creator info
-
-data CreatorInfo =
-  CreatorInfo
-    { ciNickname :: Nickname
-    , ciName :: Text
-    , ciBiography :: Text }
-
-fetchCreatorInfo :: Sql.Connection -> Nickname -> IO (Maybe CreatorInfo)
-fetchCreatorInfo sqlConn nickname =
-
-  Sql.runSession sqlConn $
-    Sql.statement nickname $
-      Sql.Statement
-        "SELECT\n\
-        \  creator_current_name(id),\n\
-        \  creator_current_biography(id)\n\
-        \FROM\n\
-        \  creators, creator_nicknames\n\
-        \WHERE\n\
-        \  nickname = $1 \n\
-        \  AND creators.id = creator_nicknames.creator_id"
-        encodeNickname
-        (SqlDec.rowMaybe decodeCreatorInfo)
-        False
-
-  where
-
-    encodeNickname :: SqlEnc.Params Nickname
-    encodeNickname =
-      SqlEnc.param (SqlEnc.nonNullable (Nickname.format >$< SqlEnc.text))
-
-    decodeCreatorInfo :: SqlDec.Row CreatorInfo
-    decodeCreatorInfo = do
-      let ciNickname = nickname
-      ciName      <- SqlDec.column (SqlDec.nonNullable SqlDec.text)
-      ciBiography <- SqlDec.column (SqlDec.nonNullable SqlDec.text)
-      pure CreatorInfo {..}
 
 --------------------------------------------------------------------------------
 -- Creator tabs

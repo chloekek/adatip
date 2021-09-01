@@ -8,9 +8,8 @@ module Adatipd.Web.CreatorPosts
 
 import Adatipd.Web.CreatorLayout
 
-import Adatipd.Nickname (Nickname)
+import Adatipd.Creator (CreatorId)
 import Adatipd.Options (Options)
-import Adatipd.Web.NotFound (handleNotFound)
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
 import Data.Time.Clock (NominalDiffTime, UTCTime, getCurrentTime, secondsToNominalDiffTime)
@@ -47,55 +46,48 @@ data Attachment
   | AudioAttachment -- TODO: This ctor should contain a URL or UUID or smth.
   | VideoAttachment -- TODO: This ctor should contain a URL or UUID or smth.
 
-fetchCreatorPosts :: Sql.Connection -> Nickname -> IO (Maybe CreatorPosts)
-fetchCreatorPosts sqlConn nickname = do
-  creatorInfo <- fetchCreatorInfo sqlConn nickname
+fetchCreatorPosts :: Sql.Connection -> CreatorId -> IO CreatorPosts
+fetchCreatorPosts sqlConn creatorId = do
+  creatorInfo <- fetchCreatorInfo sqlConn creatorId
   time <- getCurrentTime
-  case creatorInfo of
-    Nothing -> pure Nothing
-    Just chCreatorInfo ->
-      pure . Just $
-        CreatorPosts
-          { chCreatorInfo
-          , chMostRecentPosts =
-              Vector.fromList
-                [ Post
-                    "Vlog Friday #42!"
-                    "Alweer een nieuwe vlog."
-                    time
-                    (secondsToNominalDiffTime 3600)
-                    (Vector.fromList [ VideoAttachment ])
-                , Post
-                    "Programming Podcast #3"
-                    "Vandaag praten we over Haskell."
-                    time
-                    (secondsToNominalDiffTime 7200)
-                    (Vector.fromList [ AudioAttachment ])
-                , Post
-                    "Programming Podcast #2"
-                    "Vandaag praten we over Haskell."
-                    time
-                    (secondsToNominalDiffTime 290000)
-                    (Vector.fromList [ AudioAttachment ])
-                , Post
-                    "Programming Podcast #1"
-                    "Vandaag praten we over Haskell."
-                    time
-                    (secondsToNominalDiffTime 3498300)
-                    (Vector.fromList [ AudioAttachment ]) ] }
+  pure CreatorPosts
+    { chCreatorInfo = creatorInfo
+    , chMostRecentPosts =
+        Vector.fromList
+          [ Post
+              "Vlog Friday #42!"
+              "Alweer een nieuwe vlog."
+              time
+              (secondsToNominalDiffTime 3600)
+              (Vector.fromList [ VideoAttachment ])
+          , Post
+              "Programming Podcast #3"
+              "Vandaag praten we over Haskell."
+              time
+              (secondsToNominalDiffTime 7200)
+              (Vector.fromList [ AudioAttachment ])
+          , Post
+              "Programming Podcast #2"
+              "Vandaag praten we over Haskell."
+              time
+              (secondsToNominalDiffTime 290000)
+              (Vector.fromList [ AudioAttachment ])
+          , Post
+              "Programming Podcast #1"
+              "Vandaag praten we over Haskell."
+              time
+              (secondsToNominalDiffTime 3498300)
+              (Vector.fromList [ AudioAttachment ]) ] }
 
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorPosts :: Options -> Sql.Connection -> Nickname -> Wai.Application
-handleCreatorPosts options sqlConn nickname request writeResponse =
-  fetchCreatorPosts sqlConn nickname >>= \case
-    Nothing ->
-      handleNotFound options request writeResponse
-    Just creatorPosts ->
-      writeResponse $
-        Wai.responseHtml status200 [] $
-          renderCreatorPosts options creatorPosts
+handleCreatorPosts :: Options -> Sql.Connection -> CreatorId -> Wai.Application
+handleCreatorPosts options sqlConn creatorId _request writeResponse = do
+  creatorPosts <- fetchCreatorPosts sqlConn creatorId
+  writeResponse $
+    Wai.responseHtml status200 [] $
+      renderCreatorPosts options creatorPosts
 
 renderCreatorPosts :: Options -> CreatorPosts -> Markup
 renderCreatorPosts options CreatorPosts {..} =

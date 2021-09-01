@@ -35,6 +35,7 @@ library
 
     exposed-modules:
         Adatipd.Cardano
+        Adatipd.Creator
         Adatipd.Nickname
         Adatipd.Options
         Adatipd.Sql
@@ -55,6 +56,7 @@ library
         hasql,
         http-types,
         optparse-applicative,
+        postgresql-binary,
         qrcode-core,
         qrcode-juicypixels,
         scientific,

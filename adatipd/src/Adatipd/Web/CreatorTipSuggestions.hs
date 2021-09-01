@@ -6,12 +6,10 @@ module Adatipd.Web.CreatorTipSuggestions
   ( handleCreatorTipSuggestions
   ) where
 
-import Adatipd.Web.CreatorLayout
-
 import Adatipd.Cardano (Address (..), Lovelace (..), formatAdaWithSymbol, formatBech32)
-import Adatipd.Nickname (Nickname)
+import Adatipd.Creator (CreatorId, CreatorInfo (..), fetchCreatorInfo)
 import Adatipd.Options (Options (..))
-import Adatipd.Web.NotFound (handleNotFound)
+import Adatipd.Web.CreatorLayout (CreatorTab (..), renderCreatorLayout)
 import Codec.QRCode (QRImage)
 import Control.Monad (when)
 import Data.Foldable (for_, traverse_)
@@ -78,20 +76,17 @@ mkTipSuggestion tsTitle tsAmount address =
 -- Request handling
 
 handleCreatorTipSuggestions
-  :: Options -> Sql.Connection -> Nickname -> Wai.Application
-handleCreatorTipSuggestions options sqlConn nickname request writeResponse =
-  fetchCreatorTipSuggestions sqlConn nickname >>= \case
-    Nothing ->
-      handleNotFound options request writeResponse
-    Just creatorTipSuggestions ->
-      writeResponse $
-        Wai.responseHtml status200 [] $
-          renderCreatorTipSuggestions options creatorTipSuggestions
+  :: Options -> Sql.Connection -> CreatorId -> Wai.Application
+handleCreatorTipSuggestions options sqlConn creatorId _request writeResponse = do
+  creatorTipSuggestions <- fetchCreatorTipSuggestions sqlConn creatorId
+  writeResponse $
+    Wai.responseHtml status200 [] $
+      renderCreatorTipSuggestions options creatorTipSuggestions
 
 fetchCreatorTipSuggestions
-  :: Sql.Connection -> Nickname -> IO (Maybe CreatorTipSuggestions)
-fetchCreatorTipSuggestions sqlConn nickname = do
-  creatorInfo <- fetchCreatorInfo sqlConn nickname
+  :: Sql.Connection -> CreatorId -> IO CreatorTipSuggestions
+fetchCreatorTipSuggestions sqlConn creatorId = do
+  creatorInfo <- fetchCreatorInfo sqlConn creatorId
 
   -- TODO:
   -- If there are no tip suggestions,
@@ -111,16 +106,12 @@ fetchCreatorTipSuggestions sqlConn nickname = do
           , mkTipSuggestion "Mag ik een cola?" (Just (Lovelace 4000000)) addr
           , mkTipSuggestion "Support me!" Nothing addr ]
 
-  case creatorInfo of
-    Nothing -> pure Nothing
-    Just ctsCreatorInfo ->
-      pure . Just $
-        CreatorTipSuggestions
-          { ctsCreatorInfo
-          , ctsTipAddress = addr
-          , ctsShowAmountsNonBindingNotice =
-              any (\TipSuggestion {..} -> isJust tsAmount) tipsuggs
-          , ctsTipSuggestions = tipsuggs }
+  pure CreatorTipSuggestions
+    { ctsCreatorInfo = creatorInfo
+    , ctsTipAddress = addr
+    , ctsShowAmountsNonBindingNotice =
+        any (\TipSuggestion {..} -> isJust tsAmount) tipsuggs
+    , ctsTipSuggestions = tipsuggs }
 
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
 renderCreatorTipSuggestions options cts@CreatorTipSuggestions {..} =
