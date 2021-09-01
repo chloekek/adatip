@@ -21,12 +21,11 @@ START TRANSACTION;
 INSERT INTO creators
     (id)
 VALUES
-    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588' )
-    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6' )
-    ;
+    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588' ),
+    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6' );
 
-INSERT INTO nicknames
-    (nickname, creator, created)
+INSERT INTO creator_nicknames
+    (nickname, creator_id, created)
 VALUES
     ( 'ingriddevries'
     , '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
