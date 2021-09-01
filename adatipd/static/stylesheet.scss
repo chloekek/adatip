@@ -51,6 +51,11 @@ $page-width: 960px;
 {
     line-height: size(1em);
 
+    & code
+    {
+        font-family: monospace;
+    }
+
     & strong
     {
         font-weight: bold;

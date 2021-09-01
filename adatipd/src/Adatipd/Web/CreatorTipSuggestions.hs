@@ -11,10 +11,8 @@ import Adatipd.Creator (CreatorId, CreatorInfo (..), fetchCreatorInfo)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.CreatorLayout (CreatorTab (..), renderCreatorLayout)
 import Codec.QRCode (QRImage)
-import Control.Monad (when)
-import Data.Foldable (for_, traverse_)
-import Data.Maybe (isJust)
-import Data.Text (Text)
+import Data.Foldable (traverse_)
+import Data.Maybe (isNothing)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
 import Text.Blaze (Markup, (!))
@@ -25,7 +23,7 @@ import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Codec.QRCode as Qr
 import qualified Codec.QRCode.JuicyPixels as Qr
 import qualified Data.Text.Lazy.Builder as TLB (toLazyText)
-import qualified Data.Vector as Vector (fromList)
+import qualified Data.Vector as Vector (fromList, toList)
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -37,18 +35,13 @@ import qualified Text.Blaze.Internal as HB (textBuilder)
 data CreatorTipSuggestions =
   CreatorTipSuggestions
     { ctsCreatorInfo :: CreatorInfo
-    , ctsShowAmountsNonBindingNotice :: Bool
-      -- ^
-      -- Whether to show a notice about amounts being non-binding.
-      -- This should only be shown when there are tip suggestions with amounts.
     , ctsTipAddress :: Address
     , ctsTipSuggestions :: Vector TipSuggestion }
 
 data TipSuggestion =
   TipSuggestion
-    { tsTitle :: Text
-    , tsAmount :: Maybe Lovelace
-      -- ^ A tip suggestion may have no specified amount.
+    { tsAmount :: Maybe Lovelace
+      -- ^ 'Nothing' for the “custom amount” option.
     , tsQrImage :: Maybe QRImage
       -- ^ QR code creation may fail, so this is 'Maybe'.
     }
@@ -57,8 +50,8 @@ data TipSuggestion =
 -- Create a tip suggestion from its parameters.
 -- QR image will be generated automatically
 -- and does not need to be given to this function.
-mkTipSuggestion :: Text -> Maybe Lovelace -> Address -> TipSuggestion
-mkTipSuggestion tsTitle tsAmount address =
+mkTipSuggestion :: Maybe Lovelace -> Address -> TipSuggestion
+mkTipSuggestion tsAmount address =
   let
     -- High error correction leads to an enormous QR code.
     -- Medium should be plenty; people will scan this with their phone from a
@@ -86,81 +79,95 @@ handleCreatorTipSuggestions options sqlConn creatorId _request writeResponse = d
 fetchCreatorTipSuggestions
   :: Sql.Connection -> CreatorId -> IO CreatorTipSuggestions
 fetchCreatorTipSuggestions sqlConn creatorId = do
-  creatorInfo <- fetchCreatorInfo sqlConn creatorId
 
-  -- TODO:
-  -- If there are no tip suggestions,
-  -- generate a default one with no suggested amount.
+  ctsCreatorInfo <- fetchCreatorInfo sqlConn creatorId
 
-  let addr =
+  let ctsTipAddress =
         Address
           "addr1qy7h4lxjsn7cz95gen79upe3lls6wlqn35m\
           \yruevx37utqal5fedzlcnfduhaqlqnyamuyt8apy\
           \6pfj6qu4fj8dmr4tsa3g6qz"
 
-  let tipsuggs =
+  let ctsTipSuggestions =
         Vector.fromList
-          [ mkTipSuggestion "Koffie" (Just (Lovelace 1000000)) addr
-          , mkTipSuggestion "Chips" (Just (Lovelace 2000000)) addr
-          , mkTipSuggestion "Boterham" (Just (Lovelace 3000000)) addr
-          , mkTipSuggestion "Mag ik een cola?" (Just (Lovelace 4000000)) addr
-          , mkTipSuggestion "Support me!" Nothing addr ]
+          [ mkTipSuggestion (Just (Lovelace 1000000)) ctsTipAddress
+          , mkTipSuggestion (Just (Lovelace 2000000)) ctsTipAddress
+          , mkTipSuggestion (Just (Lovelace 3000000)) ctsTipAddress
+          , mkTipSuggestion (Just (Lovelace 4000000)) ctsTipAddress
+          , mkTipSuggestion Nothing ctsTipAddress ]
 
-  pure CreatorTipSuggestions
-    { ctsCreatorInfo = creatorInfo
-    , ctsTipAddress = addr
-    , ctsShowAmountsNonBindingNotice =
-        any (\TipSuggestion {..} -> isJust tsAmount) tipsuggs
-    , ctsTipSuggestions = tipsuggs }
+  pure CreatorTipSuggestions {..}
 
 renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
-renderCreatorTipSuggestions options cts@CreatorTipSuggestions {..} =
+renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
   renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
     HH.section ! HA.class_ "creator-tip-suggestions" $ do
-      renderTipTutorial options cts
-      traverse_ (renderTipSuggestion ctsTipAddress) ctsTipSuggestions
+      renderTutorial ctsCreatorInfo
+      renderTipSuggestions ctsTipSuggestions
+      renderTipAddress ctsCreatorInfo ctsTipAddress
+      renderFinePrint options
 
-renderTipTutorial :: Options -> CreatorTipSuggestions -> Markup
-renderTipTutorial Options {..} CreatorTipSuggestions {..} =
+renderTutorial :: CreatorInfo -> Markup
+renderTutorial CreatorInfo {..} =
   HH.p ! HA.class_ "-tutorial" $ do
 
     "Feeling generous? Send "
-    HH.strong $ HB.text (ciName ctsCreatorInfo)
+    HH.strong $ HB.text ciName
     " a tip! 😍"
     HH.br
 
-    when ctsShowAmountsNonBindingNotice $ do
-      "The amounts shown are suggestions; you may tip any amount."
-      HH.br
+    "Select an amount, then scan the QR code with your wallet."
 
-    "Note that tips do not grant access to exclusive content."
-    HH.br
+renderTipSuggestions :: Vector TipSuggestion -> Markup
+renderTipSuggestions tipSuggestions =
+  HH.section ! HA.class_ "-tip-suggestions" $
+    traverse_
+      (uncurry renderTipSuggestion)
+      ([0 ..] `zip` Vector.toList tipSuggestions)
 
+renderTipSuggestion :: Int -> TipSuggestion -> Markup
+renderTipSuggestion i TipSuggestion {..} = do
+
+  -- For each tip suggestion we render a radio button, a label, and a QR code.
+  -- The label, when clicked, will mark the radio button as checked.
+  -- The QR code is hidden until the associated radio is checked.
+  -- This is achieved using CSS ‘:checked’ and sibling selectors.
+
+  let idAttr = HB.toValue ("tip-suggestion-" <> show i)
+
+  HH.input
+    ! HA.id idAttr
+    ! HA.class_ "-radio"
+    ! HA.type_ "radio"
+    ! HA.name "tip-suggestion-radio"
+    ! if isNothing tsAmount then HA.checked "checked" else mempty
+
+  HH.label ! HA.class_ "-label" ! HA.for idAttr $
+    case tsAmount of
+      Just amount -> HB.textBuilder (formatAdaWithSymbol amount)
+      Nothing -> "Custom amount"
+
+  case tsQrImage of
+    Nothing ->
+      HB.stringComment
+        "Unfortunately no QR code could \
+        \be generated for this address."
+    Just qrImage -> do
+      let qrImagePng = Qr.toPngDataUrlT 4 8 qrImage
+      HH.img
+        ! HA.class_ "-qr-code"
+        ! HA.src (HB.lazyTextValue qrImagePng)
+
+renderTipAddress :: CreatorInfo -> Address -> Markup
+renderTipAddress CreatorInfo {..} tipAddress =
+  HH.p ! HA.class_ "-tip-address" $ do
+    "You can also send directly to the Cardano address of "
+    HB.text ciName *> ": "
+    HH.code $ HB.text (formatBech32 tipAddress)
+
+renderFinePrint :: Options -> Markup
+renderFinePrint Options {..} =
+  HH.p ! HA.class_ "-fine-print" $ do
+    "Tips do not grant access to exclusive content." *> HH.br
+    "Do not send coins other than Ada to the address." *> HH.br
     HH.text oInstanceTitle *> " will not charge you for sending tips."
-
-renderTipSuggestion :: Address -> TipSuggestion -> Markup
-renderTipSuggestion tipAddress TipSuggestion {..} =
-
-  HH.article $ do
-
-    HH.header ! HA.class_ "-header" $ do
-      HH.h1 ! HA.class_ "-title" $
-        HB.text tsTitle
-      for_ tsAmount $
-        \amount ->
-          HH.p ! HA.class_ "-amount" $
-            HB.textBuilder (formatAdaWithSymbol amount)
-
-    case tsQrImage of
-      Nothing ->
-        HB.stringComment
-          "Unfortunately no QR code could \
-          \be generated for this address."
-      Just qrImage -> do
-        let qrImagePng = Qr.toPngDataUrlT 4 8 qrImage
-        HH.img
-          ! HA.class_ "-qr-code"
-          ! HA.src (HB.lazyTextValue qrImagePng)
-
-    HH.section ! HA.class_ "-address" $
-      HB.text (formatBech32 tipAddress)
