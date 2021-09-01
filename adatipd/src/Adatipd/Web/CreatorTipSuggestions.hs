@@ -153,7 +153,7 @@ renderTipSuggestion i TipSuggestion {..} = do
         "Unfortunately no QR code could \
         \be generated for this address."
     Just qrImage -> do
-      let qrImagePng = Qr.toPngDataUrlT 4 8 qrImage
+      let qrImagePng = Qr.toPngDataUrlT 0 8 qrImage
       HH.img
         ! HA.class_ "-qr-code"
         ! HA.src (HB.lazyTextValue qrImagePng)
