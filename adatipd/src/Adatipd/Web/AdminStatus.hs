@@ -32,7 +32,7 @@ renderAdminStatus
   -> Markup
 renderAdminStatus options networkInfo =
   let
-    title = "Instance Status — " <> (oInstanceTitle options)
+    title = "Instance Status"
     renderChainTip name tip = do
       HH.tr $ do
         HH.td $ HB.text $ name <> " time"
