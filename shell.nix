@@ -1,9 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 { nixpkgs ? import nix/nixpkgs
-, profile ? "all" }:
+, env ? "dev" }:
 
 let
+
+    cardanoConfig = import ./nix/cardano-config.nix { inherit nixpkgs; };
+    cardanoWallet = import ./nix/cardano-wallet.nix { inherit nixpkgs; };
 
     # Configure GHC to know about the Haskell packages we need.
     # Transitive dependencies of packages do not need to be listed.
@@ -20,63 +23,85 @@ let
         p.warp                          # Library for HTTP servers.
     ];
 
-    cardanoConfig = import ./nix/cardano-config.nix { inherit nixpkgs; };
-    cardanoWallet = import ./nix/cardano-wallet.nix { inherit nixpkgs; };
+    # Based on the selected environment we will export different variables.
+    # For instance, when testing, there is no “one global database”
+    # so it wouldn’t make sense to set the PG* variables in that case.
+    exportedVariables = rec {
 
-    # By passing '--argstr profile <profile>' to nix-shell
-    # you can select a smaller set of packages.
-    # This is especially useful in CI
-    # to avoid excessive downloads.
-    profiles = rec {
+        # These are common to all environments.
+        common = {
 
-        database = [
-            nixpkgs.dbmate              # Database schema migration tool.
-            nixpkgs.postgresql_13       # Relational database server.
-            nixpkgs.python3             # To check migration file names.
-        ];
+            # Sanitize the locale settings so that Haskell works properly.
+            # Nixpkgs patches glibc to look up locales in LOCALE_ARCHIVE ([1]).
+            # [1]: https://nixos.wiki/wiki/Locales
+            LOCALE_ARCHIVE = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
+            LANG = "en_US.UTF-8";
+            LC_ALL = "en_US.UTF-8";
 
-        dev_env = [
-            nixpkgs.entr                # Autoreload tool, to rebuild on change.
-            nixpkgs.hivemind            # Process supervisor for dev env.
-            nixpkgs.nginx               # Web server and HTTP proxy.
-            nixpkgs.sassc               # Macro processor for CSS.
-            cardanoWallet
-        ];
+            # Expose the location of the default Cardano configuration,
+            # so we can make it run against the Cardano mainnet or testnet
+            # from the Procfile.
+            CARDANO_CONFIGURATION = "${cardanoConfig}";
 
-        haskell = [
-            ghcWithPackages             # Haskell compiler.
-            nixpkgs.cabal-install       # Haskell build system.
-        ];
+        };
 
-        ci_tests = haskell;
-        ci_db_setup = database;
+        # These are meant for environments that assume a single PostgreSQL.
+        common-db = rec {
 
-        all = haskell ++ database ++ dev_env;
-    };
+            # PostgreSQL env variables used by all sorts of tools.
+            # Note that the database setup scripts will override these
+            # with their own values as they need to authenticate differently.
+            PGDATA = toString state/postgresql/pgdata;
+            PGHOST = "127.0.0.1";
+            PGPORT = "8082";
+            PGUSER = "adatip_setup";
+            PGPASSWORD = PGUSER;
+            PGDATABASE = "adatip";
+
+            # Configure dbmate for the same reason.
+            DATABASE_URL = "postgres://${PGHOST}:${PGPORT}/?sslmode=disable";
+            DBMATE_MIGRATIONS_DIR = toString ./database;
+            DBMATE_NO_DUMP_SCHEMA = "true";
+
+        };
+
+        # These are meant for environments that assume a single Cardano node.
+        common-cardano = {
+
+            # The script run-cardano-node.bash,
+            # which is started from the Procfile,
+            # runs a node that puts its socket here.
+            # cardano-cli also uses this variable for finding the socket,
+            # so it will work out of the box if Hivemind is running.
+            CARDANO_NODE_SOCKET_PATH = toString state/cardano-node.socket;
+
+        };
+
+        # These are the environments you can choose.
+        dev = test // common-db // common-cardano;
+        test = common;
+        ci-test = test;
+        ci-db-setup = common // common-db;
+
+    }."${env}";
+
+    # Programs and libraries that must be available in the shell.
+    nativeBuildInputs = [
+        cardanoWallet               # Watches Cardano address for transactions.
+        ghcWithPackages             # Haskell compiler.
+        nixpkgs.cabal-install       # Haskell build system.
+        nixpkgs.dbmate              # Database schema migration tool.
+        nixpkgs.entr                # Autoreload tool, to rebuild on change.
+        nixpkgs.hivemind            # Process supervisor for dev env.
+        nixpkgs.nginx               # Web server and HTTP proxy.
+        nixpkgs.postgresql_13       # Relational database server.
+        nixpkgs.python3             # To check migration file names.
+        nixpkgs.sassc               # Macro processor for CSS.
+    ];
 
 in
 
-    # Create a Nix shell environment with all the required development tools.
-    nixpkgs.mkShell {
-
-        # Development tools to be made available in the shell.
-        nativeBuildInputs = profiles.${profile};
-
-        # Haskell shits itself if it can’t find the UTF-8 locale.
-        # Nixpkgs patches glibc to look up locales in LOCALE_ARCHIVE ([1]).
-        # [1]: https://nixos.wiki/wiki/Locales
-        LOCALE_ARCHIVE = "${nixpkgs.glibcLocales}/lib/locale/locale-archive";
-
-        # Also make sure that the locale is set when using `nix-shell --pure`.
-        LANG = "en_US.UTF-8";
-        LC_ALL = "en_US.UTF-8";
-
-        # Expose the location of the default Cardano configuration, so we can
-        # make it run against the Cardano mainnet or testnet from the Procfile.
-        CARDANO_CONFIGURATION = "${cardanoConfig}";
-
-        # The script run-cardano-node.bash, which is started from the Procfile,
-        # runs a node that puts its socket here. By setting up this variable,
-        # cardano-cli will work out of the box, if you have Hivemind running.
-        CARDANO_NODE_SOCKET_PATH = "state/cardano-node.socket";
-    }
+    nixpkgs.mkShell (
+        { inherit nativeBuildInputs; }
+        // exportedVariables
+    )

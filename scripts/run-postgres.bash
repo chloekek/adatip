@@ -5,13 +5,10 @@
 
 set -efuo pipefail
 
-pgdata=state/postgresql/pgdata
-
-if ! [[ -e "$pgdata" ]]; then
+if ! [[ -e "$PGDATA" ]]; then
 
     # First create the data directory.
     initdb                        \
-        --pgdata="$pgdata"        \
         --locale=C                \
         --encoding=UTF8           \
         --username=postgres       \
@@ -19,7 +16,7 @@ if ! [[ -e "$pgdata" ]]; then
 
     # initdb generates default configuration files.
     # We already have our own, so we will delete these.
-    rm "$pgdata"/{pg_hba,pg_ident,postgresql{,.auto}}.conf
+    rm "$PGDATA"/{pg_hba,pg_ident,postgresql{,.auto}}.conf
 
 fi
 
