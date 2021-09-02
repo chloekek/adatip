@@ -6,7 +6,7 @@
         {
             "label": "Build, Test, Doc",
             "type": "shell",
-            "command": "nix-shell --pure --run scripts/vscode.bash",
+            "command": "nix-shell --argstr env test --pure --run scripts/vscode.bash",
             "problemMatcher": [ ],
             "group": {
                 "kind": "build",

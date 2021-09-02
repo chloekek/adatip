@@ -6,11 +6,10 @@
 
 set -efuo pipefail
 
-export PGHOST=127.0.0.1
-export PGPORT=8082
+# We should not need adatip_setup for these statements.
+# Using adatip_app is a nice privilege verification mechanism.
 export PGUSER=adatip_app
-export PGPASSWORD=adatip_app
-export PGDATABASE=adatip
+export PGPASSWORD=$PGUSER
 
 psql <<'SQL'
 

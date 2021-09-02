@@ -23,5 +23,5 @@ done
 # These scripts should now all succeed.
 scripts/setup-database.bash
 scripts/check-migrations.py
-scripts/dbmate.bash migrate
+dbmate migrate
 scripts/seed-database.bash

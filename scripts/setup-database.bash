@@ -8,10 +8,9 @@
 
 set -efuo pipefail
 
-export PGHOST=127.0.0.1
-export PGPORT=8082
 export PGUSER=postgres
 export PGPASSWORD=postgres
+export PGDATABASE=postgres
 
 psql <<'SQL'
 
