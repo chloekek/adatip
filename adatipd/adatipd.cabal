@@ -37,6 +37,7 @@ library
         Adatipd.Cardano.Address
         Adatipd.Cardano.Token
         Adatipd.Cardano.Util
+        Adatipd.Cardano.Wallet
         Adatipd.Creator
         Adatipd.Nickname
         Adatipd.Options
@@ -51,10 +52,12 @@ library
         Adatipd.Web.NotFound
 
     build-depends:
+        aeson,
         base,
         blaze-html,
         blaze-markup,
         bytestring,
+        containers,
         hasql,
         http-types,
         optparse-applicative,
@@ -62,8 +65,10 @@ library
         qrcode-core,
         qrcode-juicypixels,
         scientific,
+        servant,
         text,
         time,
+        unordered-containers,
         vector,
         wai
 

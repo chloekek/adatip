@@ -13,12 +13,16 @@ let
     # Note that Cabal files must still list the required dependencies.
     ghcWithPackages = nixpkgs.ghc.withPackages haskellPackages;
     haskellPackages = p: [
+        p.aeson                         # Dependency of cardano-wallet client.
         p.blaze-html                    # Library for generating HTML.
+        p.containers
         p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
+        p.http-client
         p.optparse-applicative          # Library for parsing CLI arguments.
         p.qrcode-juicypixels            # Library for rendering QR codes.
+        p.unordered-containers
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];

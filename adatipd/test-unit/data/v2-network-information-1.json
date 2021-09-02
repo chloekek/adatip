@@ -1,0 +1,30 @@
+{
+  "network_tip": {
+    "time": "2021-09-02T15:27:18Z",
+    "epoch_number": 154,
+    "absolute_slot_number": 36227222,
+    "slot_number": 68822
+  },
+  "node_era": "alonzo",
+  "node_tip": {
+    "height": {
+      "quantity": 0,
+      "unit": "block"
+    },
+    "time": "2019-07-24T20:20:16Z",
+    "epoch_number": 0,
+    "absolute_slot_number": 0,
+    "slot_number": 0
+  },
+  "sync_progress": {
+    "status": "syncing",
+    "progress": {
+      "quantity": 0,
+      "unit": "percent"
+    }
+  },
+  "next_epoch": {
+    "epoch_start_time": "2021-09-06T20:20:16Z",
+    "epoch_number": 155
+  }
+}
