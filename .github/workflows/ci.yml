@@ -30,7 +30,7 @@ jobs:
         run: "nix-shell --argstr profile ci_tests --pure --run 'scripts/ci/tests.bash'"
 
       - name: "Dump Nix shell"
-        run: "nix-store --dump "$(nix-build --no-out-link shell.nix --argstr profile ci_tests)" > nix-shell.nar"
+        run: "nix-store --dump \"$(nix-build --no-out-link shell.nix --argstr profile ci_tests)\" > nix-shell.nar"
 
   db-setup:
     runs-on: "ubuntu-latest"
@@ -52,4 +52,4 @@ jobs:
         run: "nix-shell --argstr profile ci_db_setup --pure --run 'scripts/ci/db-setup.bash'"
 
       - name: "Dump Nix shell"
-        run: "nix-store --dump "$(nix-build --no-out-link shell.nix --argstr profile ci_db_setup)" > nix-shell.nar"
+        run: "nix-store --dump \"$(nix-build --no-out-link shell.nix --argstr profile ci_db_setup)\" > nix-shell.nar"
