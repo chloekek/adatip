@@ -93,6 +93,13 @@
             right: 0;
 
             // Use nearest neighbor scaling for QR codes.
+            // There are two similar options: crisp-edges and pixelated.
+            // Mozilla Developer Network says:
+            // > Although crisp-edges is supposed to use a pixel-art scaler
+            // > like in the specification example, in practice no browsers
+            // > (as of January 2020) does so.
+            // > In Firefox, crisp-edges is interpreted as nearest-neighbor,
+            // > pixelated is not supported.
             image-rendering: crisp-edges;
         }
 
