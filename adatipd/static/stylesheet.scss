@@ -121,6 +121,7 @@ body
     @include rich-text;
 }
 
+@import "admin";
 @import "creator-banner";
 @import "creator-tabs";
 @import "creator-posts";

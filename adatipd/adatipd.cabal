@@ -44,6 +44,7 @@ library
         Adatipd.Sql
         Adatipd.WaiUtil
         Adatipd.Web
+        Adatipd.Web.AdminStatus
         Adatipd.Web.CreatorLayout
         Adatipd.Web.CreatorPosts
         Adatipd.Web.CreatorTiers

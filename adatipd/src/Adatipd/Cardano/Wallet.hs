@@ -101,7 +101,8 @@ withWallet (WalletIO f) = do
 makeRequest' :: FromJSON a => Method -> Text -> WalletIO a
 makeRequest' method url = WalletIO $ do
   manager <- ask
-  lift $ makeRequest manager method url
+  -- TODO: Make the wallet host and address configurable.
+  lift $ makeRequest manager method ("http://127.0.0.1:8083" <> url)
 
 -- | Return information about the network the wallet is connected to.
 getNetworkInfo :: WalletIO NetworkInfo

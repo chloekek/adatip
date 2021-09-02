@@ -1,0 +1,37 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// The admin page.
+
+.admin-banner
+{
+    margin-top: 2em;
+    margin-bottom: 2em;
+    h1
+    {
+        @include center-content;
+        font-size: 2rem;
+        font-weight: bold;
+    }
+}
+
+.admin-page
+{
+    @include center-content;
+    @include creator-tabs-content-margin;
+
+    line-height: 1.6em;
+
+    h1
+    {
+      font-size: 1.5rem;
+      margin-top: 2em;
+      margin-bottom: 1em;
+      font-weight: bold;
+    }
+
+    table
+    {
+        td { padding-right: 2em; }
+        td:first-child { font-weight: bold; }
+    }
+}
