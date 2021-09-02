@@ -7,80 +7,112 @@
     @include center-content;
     @include creator-tabs-content-margin;
 
-    display: flex;
-    gap: size(1rem);
-    flex-wrap: wrap;
-    justify-content: center;
+    // We use absolute positioning for the QR code.
+    // By configuring the parent to use relative positioning,
+    // the QR code will be positioned within the parent
+    // rather than absolutely within the page.
+    position: relative;
 
     margin-bottom: size(1rem);
 
-    & > .-tutorial
+    & > .-tutorial,
+    & > .-tip-suggestions,
+    & > .-tip-address,
+    & > .-fine-print,
+    & > .-tip-suggestions > .-qr-code
     {
-        @include rich-text;
-        text-align: center;
-        width: $page-width;
+        // Divide the page into two columns 50/50.
+        // Text and buttons left, QR code right.
+        width: calc(50% - #{size(1rem) / 2});
     }
 
-    & > article
+    & > .-tutorial,
+    & > .-tip-address,
+    & > .-fine-print
     {
-        border: dashed 3px var(--subtle-highlight-color);
-        border-radius: size(1rem);
+        @include rich-text;
+    }
 
-        text-align: center;
+    & > .-tip-address,
+    & > .-fine-print
+    {
+        border-top: dashed 1px var(--subtle-highlight-color);
+        margin-top: size(0.5em);
+        padding-top: calc(#{size(0.5em)} - 1px);
+    }
 
-        // The QR code adds padding of its own, as it has a white border.
-        // So we do not need to set left and right padding for the article.
-        padding: size(1rem) 0;
+    & > .-fine-print
+    {
+        color: var(--fine-print-color);
+        font-size: 0.8em;
+        line-height: size(1rem);
+    }
 
-        &:hover
+    & > .-tip-address > code
+    {
+        display: block;
+        word-break: break-all;
+    }
+
+    & > .-tip-suggestions
+    {
+        // This allows us to nicely flow the amount buttons
+        // and to put a consistent amount of whitespace between them.
+        display: flex;
+        flex-wrap: wrap;
+        gap: size(0.25rem);
+
+        padding: size(0.5rem) 0;
+
+        & > .-label
         {
-            border-color: var(--primary-color);
-            border-style: solid;
-        }
+            background: var(--primary-color);
+            border-radius: size(0.5em);
+            color: white;
 
-        // QR codes are annoying to look at, so dim them if unnoticed.
-        // Also dim the addresses as it looks nicer that way.
-        &:not(:hover) > .-qr-code,
-        &:not(:hover) > .-address
-        {
-            opacity: 0.1;
-        }
+            cursor: pointer;
 
-        & > .-header
-        {
-            font-size: 2rem;
+            padding: 0 size(0.5em);
+
             font-weight: bold;
             line-height: size(1em);
 
-            & > .-title,
-            & > .-amount
-            {
-                display: inline;
-            }
-
-            & > .-amount
-            {
-                background: var(--primary-color);
-                border-radius: size(1em);
-                color: white;
-                margin-left: size(0.5rem);
-                padding: 0 size(0.25em);
-            }
+            display: inline-block;
         }
 
         & > .-qr-code
         {
+            // Hide the QR code until the associated radio button is checked.
+            // This is restored in the ‘.-radio:checked + .-label + .-qr-code’
+            // selector elsewhere in this style sheet.
+            display: none;
+
+            // Put the QR code next to the amount selection.
+            position: absolute;
+            top: 0;
+            right: 0;
+
             // Use nearest neighbor scaling for QR codes.
+            // There are two similar options: crisp-edges and pixelated.
+            // Mozilla Developer Network says:
+            // > Although crisp-edges is supposed to use a pixel-art scaler
+            // > like in the specification example, in practice no browsers
+            // > (as of January 2020) does so.
+            // > In Firefox, crisp-edges is interpreted as nearest-neighbor,
+            // > pixelated is not supported.
             image-rendering: crisp-edges;
         }
 
-        & > .-address
+        & > .-radio
         {
-            font-family: monospace;
-            word-break: break-all;
+            display: none;
 
-            margin: 0 auto;
-            width: $page-width / 3;
+            // When checked, highlight the label and display the QR code.
+            &:checked
+            {
+                & + .-label { background: var(--secondary-color); }
+                & + .-label + .-qr-code { display: inline; }
+            }
         }
     }
 }
