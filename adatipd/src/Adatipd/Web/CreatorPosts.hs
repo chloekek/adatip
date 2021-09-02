@@ -8,11 +8,11 @@ module Adatipd.Web.CreatorPosts
 
 import Adatipd.Web.CreatorLayout
 
-import Adatipd.Creator (CreatorId)
+import Adatipd.Creator (CreatorId, encodeCreatorId)
 import Adatipd.Options (Options)
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
-import Data.Time.Clock (NominalDiffTime, UTCTime, getCurrentTime, secondsToNominalDiffTime)
+import Data.Time.Clock (NominalDiffTime, UTCTime, diffUTCTime, getCurrentTime)
 import Data.Time.Format.ISO8601 (iso8601Show)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
@@ -21,6 +21,7 @@ import Text.Blaze (Markup, (!))
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Data.Vector as Vector (fromList)
+import qualified Hasql.Decoders as SqlDec
 import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
@@ -48,36 +49,45 @@ data Attachment
 
 fetchCreatorPosts :: Sql.Connection -> CreatorId -> IO CreatorPosts
 fetchCreatorPosts sqlConn creatorId = do
-  creatorInfo <- fetchCreatorInfo sqlConn creatorId
-  time <- getCurrentTime
-  pure CreatorPosts
-    { chCreatorInfo = creatorInfo
-    , chMostRecentPosts =
-        Vector.fromList
-          [ Post
-              "Vlog Friday #42!"
-              "Alweer een nieuwe vlog."
-              time
-              (secondsToNominalDiffTime 3600)
-              (Vector.fromList [ VideoAttachment ])
-          , Post
-              "Programming Podcast #3"
-              "Vandaag praten we over Haskell."
-              time
-              (secondsToNominalDiffTime 7200)
-              (Vector.fromList [ AudioAttachment ])
-          , Post
-              "Programming Podcast #2"
-              "Vandaag praten we over Haskell."
-              time
-              (secondsToNominalDiffTime 290000)
-              (Vector.fromList [ AudioAttachment ])
-          , Post
-              "Programming Podcast #1"
-              "Vandaag praten we over Haskell."
-              time
-              (secondsToNominalDiffTime 3498300)
-              (Vector.fromList [ AudioAttachment ]) ] }
+
+  chCreatorInfo <- fetchCreatorInfo sqlConn creatorId
+
+  currentTime <- getCurrentTime
+
+  posts <-
+    Sql.runSession sqlConn $
+      Sql.statement creatorId $
+        Sql.Statement
+          "SELECT\n\
+          \  post_current_title(id),\n\
+          \  post_current_content(id),\n\
+          \  post_first_published(id)\n\
+          \FROM\n\
+          \  posts\n\
+          \WHERE\n\
+          \  creator_id = $1\n\
+          \  AND post_current_visibility(id)\n\
+          \ORDER BY\n\
+          \  post_first_published(id) DESC"
+          encodeCreatorId
+          (SqlDec.rowVector (decodePost currentTime))
+          False
+
+  pure
+    CreatorPosts
+      { chCreatorInfo
+      , chMostRecentPosts = posts }
+
+  where
+
+    decodePost :: UTCTime -> SqlDec.Row Post
+    decodePost currentTime = do
+      pTitle <- SqlDec.column (SqlDec.nonNullable SqlDec.text)
+      pContent <- SqlDec.column (SqlDec.nonNullable SqlDec.text)
+      pPublishedAbsolute <- SqlDec.column (SqlDec.nonNullable SqlDec.timestamptz)
+      let pPublishedRelative = currentTime `diffUTCTime` pPublishedAbsolute
+      let pAttachments = Vector.fromList []
+      pure Post {..}
 
 --------------------------------------------------------------------------------
 -- Request handling
