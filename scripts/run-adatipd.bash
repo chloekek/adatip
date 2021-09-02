@@ -14,12 +14,14 @@ export PGUSER=adatip_app
 export PGPASSWORD=$PGUSER
 export PGDATABASE=adatip
 
-# Run the daemon with "cabal new-run", but reload it when any of the Git-tracked
-# files in "adatipd" change. (Only evaluated at the start, if you add a new
-# file, you need to reload manually.)
+# Run adatipd with "cabal new-run", but reload it when a source file changes.
+# Source files are only discovered at the start;
+# you must manually reload after adding new source files.
+#
 # -n: Make entr not ask for input on an interactive TTY.
 # -r: The child-process is persistent; kill it and restart when triggered.
-git ls-files | exec entr -nr -- cabal --offline new-run -- \
-    adatipd                                     \
-    --cardano-node-socket-path cardano.socket   \
-    --instance-title adatip.social
+find -type f -name '*.cabal' -or -name '*.hs' |   \
+    exec entr -nr -- cabal --offline new-run --   \
+        adatipd                                   \
+        --cardano-node-socket-path cardano.socket \
+        --instance-title adatip.social

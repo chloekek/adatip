@@ -37,7 +37,6 @@ let
 
         dev_env = [
             nixpkgs.entr                # Autoreload tool, to rebuild on change.
-            nixpkgs.gitMinimal          # To list files for entr.
             nixpkgs.hivemind            # Process supervisor for dev env.
             nixpkgs.nginx               # Web server and HTTP proxy.
             nixpkgs.sassc               # Macro processor for CSS.
