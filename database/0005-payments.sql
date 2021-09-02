@@ -85,5 +85,7 @@ DROP TABLE payment_requests;
 DROP TABLE wallet_addresses;
 DROP TABLE creator_receive_addresses;
 
+DROP FUNCTION creator_current_receive_address(uuid);
+
 DROP DOMAIN bech32;
 DROP DOMAIN ada;
