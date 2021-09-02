@@ -6,7 +6,7 @@ module Adatipd.CardanoSpec
   ( spec
   ) where
 
-import Adatipd.Cardano (Lovelace (..), formatAdaWithSymbol)
+import Adatipd.Cardano.Token (Lovelace (..), formatAdaWithSymbol)
 import Data.Foldable (for_)
 import Test.Hspec (Spec, it, shouldBe)
 

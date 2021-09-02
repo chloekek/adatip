@@ -34,7 +34,9 @@ library
         src
 
     exposed-modules:
-        Adatipd.Cardano
+        Adatipd.Cardano.Address
+        Adatipd.Cardano.Token
+        Adatipd.Cardano.Util
         Adatipd.Creator
         Adatipd.Nickname
         Adatipd.Options
