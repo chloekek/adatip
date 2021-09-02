@@ -18,11 +18,12 @@
     & > .-tutorial,
     & > .-tip-suggestions,
     & > .-tip-address,
-    & > .-fine-print
+    & > .-fine-print,
+    & > .-tip-suggestions > .-qr-code
     {
-        // The QR code takes up about half the space.
-        // Make sure not to render text behind it.
-        width: 50%;
+        // Divide the page into two columns 50/50.
+        // Text and buttons left, QR code right.
+        width: calc(50% - #{size(1rem) / 2});
     }
 
     & > .-tutorial,
