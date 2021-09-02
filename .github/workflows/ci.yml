@@ -18,14 +18,15 @@ jobs:
 
       - uses: "cachix/install-nix-action@v13"
 
-      - uses: "actions/cache@v2"
+      - id: "cache"
+        uses: "actions/cache@v2"
         with:
           path: "nix-shell.nar"
           key: "${{ runner.os }}-test-nix-shell"
 
       - name: "Restore Nix shell"
         run: "nix-store --restore nix-shell.nar"
-        if: "${{ cache-hit }}"
+        if: "steps.cache.outputs.cache-hit == 'true'"
 
       - name: "Build and test the software"
         run: "nix-shell --argstr profile ci_tests --pure --run 'scripts/ci/tests.bash'"
@@ -41,14 +42,15 @@ jobs:
 
       - uses: "cachix/install-nix-action@v13"
 
-      - uses: "actions/cache@v2"
+      - id: "cache"
+        uses: "actions/cache@v2"
         with:
           path: "nix-shell.nar"
           key: "${{ runner.os }}-db-setup-nix-shell"
 
       - name: "Restore Nix shell"
         run: "nix-store --restore nix-shell.nar"
-        if: "${{ cache-hit }}"
+        if: "steps.cache.outputs.cache-hit == 'true'"
 
       - name: "Verify that the database can be set up"
         run: "nix-shell --argstr profile ci_db_setup --pure --run 'scripts/ci/db-setup.bash'"
