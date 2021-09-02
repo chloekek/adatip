@@ -40,6 +40,13 @@
         padding-top: calc(#{size(0.5em)} - 1px);
     }
 
+    & > .-fine-print
+    {
+        color: var(--fine-print-color);
+        font-size: 0.8em;
+        line-height: size(1rem);
+    }
+
     & > .-tip-address > code
     {
         display: block;

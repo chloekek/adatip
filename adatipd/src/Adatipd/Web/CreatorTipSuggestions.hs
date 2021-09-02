@@ -108,7 +108,7 @@ renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
       renderTutorial ctsCreatorInfo
       renderTipSuggestions ctsTipSuggestions ctsCustomAmountQrImage
       renderTipAddress ctsCreatorInfo ctsTipAddress
-      renderFinePrint options
+      renderFinePrint ctsCreatorInfo options
 
 renderTutorial :: CreatorInfo -> Markup
 renderTutorial CreatorInfo {..} =
@@ -171,9 +171,23 @@ renderTipAddress CreatorInfo {..} tipAddress =
     HB.text ciName *> ": "
     HH.code $ HB.text (formatBech32 tipAddress)
 
-renderFinePrint :: Options -> Markup
-renderFinePrint Options {..} =
+renderFinePrint :: CreatorInfo -> Options -> Markup
+renderFinePrint CreatorInfo {..} Options {..} =
   HH.p ! HA.class_ "-fine-print" $ do
-    "Tips do not grant access to exclusive content." *> HH.br
-    "Do not send coins other than Ada to the address." *> HH.br
-    HH.text oInstanceTitle *> " will not charge you for sending tips."
+    "When you send a tip, you send Ada directly to "
+    HB.text ciName *> ". "
+
+    HB.text ciName *> " will receive the full tipped amount: "
+    HH.text oInstanceTitle *> " does not process the tip and "
+    "does not charge you for sending tips. "
+
+    "Tips are voluntary and do not grant access to exclusive content "
+    "on " *> HB.text oInstanceTitle *> ". "
+
+    "The Cardano network may additionally charge a transaction fee. "
+    "Your wallet will show you the fee before you sign the transaction. "
+
+    "Only send Cardano assets, such as Ada, to the address. "
+    "Do not send assets of other cryptocurrency platforms "
+    "such as Bitcoin or Ethereum to the address; "
+    "they will not arrive and they will be lost unrecoverably."
