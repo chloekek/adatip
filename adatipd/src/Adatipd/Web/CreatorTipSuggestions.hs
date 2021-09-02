@@ -11,7 +11,7 @@ import Adatipd.Creator (CreatorId, CreatorInfo (..), fetchCreatorInfo)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.CreatorLayout (CreatorTab (..), renderCreatorLayout)
 import Codec.QRCode (QRImage)
-import Data.Foldable (traverse_)
+import Data.Foldable (for_)
 import Data.Maybe (isNothing)
 import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
@@ -36,22 +36,24 @@ data CreatorTipSuggestions =
   CreatorTipSuggestions
     { ctsCreatorInfo :: CreatorInfo
     , ctsTipAddress :: Address
-    , ctsTipSuggestions :: Vector TipSuggestion }
+    , ctsTipSuggestions :: Vector TipSuggestion
+    , ctsCustomAmountQrImage :: Maybe QRImage }
 
 data TipSuggestion =
   TipSuggestion
-    { tsAmount :: Maybe Lovelace
-      -- ^ 'Nothing' for the “custom amount” option.
+    { tsAmount :: Lovelace
     , tsQrImage :: Maybe QRImage
       -- ^ QR code creation may fail, so this is 'Maybe'.
     }
 
--- |
--- Create a tip suggestion from its parameters.
--- QR image will be generated automatically
--- and does not need to be given to this function.
-mkTipSuggestion :: Maybe Lovelace -> Address -> TipSuggestion
+mkTipSuggestion :: Lovelace -> Address -> TipSuggestion
 mkTipSuggestion tsAmount address =
+  TipSuggestion
+    { tsAmount
+    , tsQrImage = mkQrImage (Just tsAmount) address }
+
+mkQrImage :: Maybe Lovelace -> Address -> Maybe QRImage
+mkQrImage amount address =
   let
     -- High error correction leads to an enormous QR code.
     -- Medium should be plenty; people will scan this with their phone from a
@@ -60,10 +62,9 @@ mkTipSuggestion tsAmount address =
     -- code fails to transfer properly, it will not suddenly transfer to the
     -- wrong address.
     qrOptions = Qr.defaultQRCodeOptions Qr.M
-    qrText = TLB.toLazyText (Cardano.paymentUri address tsAmount)
-    tsQrImage = Qr.encodeText qrOptions Qr.Iso8859_1 qrText
+    qrText = TLB.toLazyText (Cardano.paymentUri address amount)
   in
-    TipSuggestion {..}
+    Qr.encodeText qrOptions Qr.Iso8859_1 qrText
 
 --------------------------------------------------------------------------------
 -- Request handling
@@ -90,11 +91,13 @@ fetchCreatorTipSuggestions sqlConn creatorId = do
 
   let ctsTipSuggestions =
         Vector.fromList
-          [ mkTipSuggestion (Just (Lovelace 1000000)) ctsTipAddress
-          , mkTipSuggestion (Just (Lovelace 2000000)) ctsTipAddress
-          , mkTipSuggestion (Just (Lovelace 3000000)) ctsTipAddress
-          , mkTipSuggestion (Just (Lovelace 4000000)) ctsTipAddress
-          , mkTipSuggestion Nothing ctsTipAddress ]
+          [ mkTipSuggestion (Lovelace 1000000) ctsTipAddress
+          , mkTipSuggestion (Lovelace 2000000) ctsTipAddress
+          , mkTipSuggestion (Lovelace 3000000) ctsTipAddress
+          , mkTipSuggestion (Lovelace 4000000) ctsTipAddress ]
+
+  let ctsCustomAmountQrImage =
+        mkQrImage Nothing ctsTipAddress
 
   pure CreatorTipSuggestions {..}
 
@@ -103,7 +106,7 @@ renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
   renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
     HH.section ! HA.class_ "creator-tip-suggestions" $ do
       renderTutorial ctsCreatorInfo
-      renderTipSuggestions ctsTipSuggestions
+      renderTipSuggestions ctsTipSuggestions ctsCustomAmountQrImage
       renderTipAddress ctsCreatorInfo ctsTipAddress
       renderFinePrint options
 
@@ -118,15 +121,18 @@ renderTutorial CreatorInfo {..} =
 
     "Select an amount, then scan the QR code with your wallet."
 
-renderTipSuggestions :: Vector TipSuggestion -> Markup
-renderTipSuggestions tipSuggestions =
-  HH.section ! HA.class_ "-tip-suggestions" $
-    traverse_
-      (uncurry renderTipSuggestion)
-      ([0 ..] `zip` Vector.toList tipSuggestions)
+renderTipSuggestions :: Vector TipSuggestion -> Maybe QRImage -> Markup
+renderTipSuggestions tipSuggestions customAmountQrImage =
+  HH.section ! HA.class_ "-tip-suggestions" $ do
 
-renderTipSuggestion :: Int -> TipSuggestion -> Markup
-renderTipSuggestion i TipSuggestion {..} = do
+    for_ ([1 ..] `zip` Vector.toList tipSuggestions) $
+      \(i, TipSuggestion {..}) ->
+        renderTipSuggestion i (Just tsAmount) tsQrImage
+
+    renderTipSuggestion 0 Nothing customAmountQrImage
+
+renderTipSuggestion :: Int -> Maybe Lovelace -> Maybe QRImage -> Markup
+renderTipSuggestion i amount qrImage = do
 
   -- For each tip suggestion we render a radio button, a label, and a QR code.
   -- The label, when clicked, will mark the radio button as checked.
@@ -140,20 +146,20 @@ renderTipSuggestion i TipSuggestion {..} = do
     ! HA.class_ "-radio"
     ! HA.type_ "radio"
     ! HA.name "tip-suggestion-radio"
-    ! if isNothing tsAmount then HA.checked "checked" else mempty
+    ! if isNothing amount then HA.checked "checked" else mempty
 
   HH.label ! HA.class_ "-label" ! HA.for idAttr $
-    case tsAmount of
-      Just amount -> HB.textBuilder (formatAdaWithSymbol amount)
+    case amount of
+      Just amount' -> HB.textBuilder (formatAdaWithSymbol amount')
       Nothing -> "Custom amount"
 
-  case tsQrImage of
+  case qrImage of
     Nothing ->
       HB.stringComment
         "Unfortunately no QR code could \
         \be generated for this address."
-    Just qrImage -> do
-      let qrImagePng = Qr.toPngDataUrlT 0 8 qrImage
+    Just qrImage' -> do
+      let qrImagePng = Qr.toPngDataUrlT 0 8 qrImage'
       HH.img
         ! HA.class_ "-qr-code"
         ! HA.src (HB.lazyTextValue qrImagePng)
