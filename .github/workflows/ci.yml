@@ -16,8 +16,8 @@ jobs:
       - uses: "cachix/install-nix-action@v13"
       - uses: "actions/cache@v2"
         with:
-          - path: "/nix/store"
-          - key: "${{ runner.os }}-test-nix-store"
+          path: "/nix/store"
+          key: "${{ runner.os }}-test-nix-store"
       - name: "Build and test the software"
         run: "nix-shell --argstr profile ci_tests --pure --run 'scripts/ci/tests.bash'"
   db-setup:
@@ -27,7 +27,7 @@ jobs:
       - uses: "cachix/install-nix-action@v13"
       - uses: "actions/cache@v2"
         with:
-          - path: "/nix/store"
-          - key: "${{ runner.os }}-db-setup-nix-store"
+          path: "/nix/store"
+          key: "${{ runner.os }}-db-setup-nix-store"
       - name: "Verify that the database can be set up"
         run: "nix-shell --argstr profile ci_db_setup --pure --run 'scripts/ci/db-setup.bash'"
