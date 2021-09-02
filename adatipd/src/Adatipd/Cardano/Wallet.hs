@@ -4,13 +4,13 @@
 
 module Adatipd.Cardano.Wallet
   ( ChainTip (..)
-  , SyncStatus (..)
   , NetworkInfo (..)
+  , SyncProgress (..)
+  , SyncStatus (..)
   ) where
 
 import Data.Aeson (FromJSON, (.:))
 import Data.Time.Clock (UTCTime)
-import Data.Text (Text)
 
 import qualified Data.Aeson as Aeson
 import qualified Data.Text as Text
@@ -20,7 +20,7 @@ data ChainTip = ChainTip
   , ctEpochNumber :: Int
   , ctAbsoluteSlotNumber :: Int
   , ctSlotInEpoch :: Int
-  }
+  } deriving (Eq, Show)
 
 instance FromJSON ChainTip where
   parseJSON = Aeson.withObject "ChainTip" $ \v -> ChainTip
@@ -32,6 +32,7 @@ instance FromJSON ChainTip where
 data SyncStatus
   = SyncSyncing
   | SyncReady
+  deriving (Eq, Show)
 
 instance FromJSON SyncStatus where
   parseJSON = Aeson.withText "SyncStatus" $ \v -> case v of
@@ -39,7 +40,9 @@ instance FromJSON SyncStatus where
     "syncing" -> pure SyncSyncing
     other     -> fail $ "Unrecognized sync status: " <> Text.unpack other
 
-newtype SyncProgress = SyncProgress SyncStatus
+newtype SyncProgress =
+  SyncProgress SyncStatus
+  deriving (Eq, Show)
 
 instance FromJSON SyncProgress where
   parseJSON = Aeson.withObject "SyncProgress" $ \v -> SyncProgress
@@ -49,7 +52,7 @@ data NetworkInfo = NetworkInfo
   { niNetworkTip :: ChainTip
   , niNodeTip :: ChainTip
   , niSyncProgress :: SyncProgress
-  }
+  } deriving (Eq, Show)
 
 instance FromJSON NetworkInfo where
   parseJSON = Aeson.withObject "NetworkInfo" $ \v -> NetworkInfo

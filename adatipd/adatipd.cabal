@@ -109,9 +109,12 @@ test-suite test-unit
 
     build-depends:
         adatipd,
+        aeson,
         base,
         hedgehog,
         hspec,
         hspec-discover,
+        hspec-expectations,
         hspec-hedgehog,
-        text
+        text,
+        time
