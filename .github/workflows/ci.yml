@@ -25,6 +25,7 @@ jobs:
 
       - name: "Restore Nix shell"
         run: "nix-store --restore nix-shell.nar"
+        if: "${{ cache-hit }}"
 
       - name: "Build and test the software"
         run: "nix-shell --argstr profile ci_tests --pure --run 'scripts/ci/tests.bash'"
@@ -47,6 +48,7 @@ jobs:
 
       - name: "Restore Nix shell"
         run: "nix-store --restore nix-shell.nar"
+        if: "${{ cache-hit }}"
 
       - name: "Verify that the database can be set up"
         run: "nix-shell --argstr profile ci_db_setup --pure --run 'scripts/ci/db-setup.bash'"
