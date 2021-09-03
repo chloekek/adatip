@@ -1,11 +1,11 @@
 -- SPDX-License-Identifier: AGPL-3.0-only
 
-module Adatipd.Sql.Test
+module Adatipd.SqlTest
   ( withSqlConnection
   , withSqlSettings
   ) where
 
-import Data.Word (Word16)
+import System.Directory (createDirectory)
 import System.Environment (getEnvironment)
 import System.Exit (ExitCode (..))
 import System.IO.Temp (withSystemTempDirectory)
@@ -37,11 +37,11 @@ withSqlSettings action =
   withSystemTempDirectory "adatipd-test-database" $
     \directory -> do
 
-      -- TODO: When #42 is fixed we do not need to set a port number.
-      let port = 6000
+      -- Create directory for socket.
+      createDirectory (directory <> "/pgsocket")
 
       -- Create and set up database.
-      env <- databaseEnv directory port
+      env <- databaseEnv directory
       withSqlDatabase env $ do
         runScript env "scripts/wait-postgres-ready.bash" []
         runScript env "scripts/setup-database.bash" []
@@ -49,7 +49,7 @@ withSqlSettings action =
         runScript env "scripts/seed-database.bash" []
 
         -- The action should now be able to connect.
-        action (postgresSettings port)
+        action (postgresSettings directory)
 
 --------------------------------------------------------------------------------
 -- Database commands.
@@ -79,28 +79,37 @@ runScript env script args =
 
 mkCreateProcess :: [(String, String)] -> FilePath -> [String] -> CreateProcess
 mkCreateProcess env program args =
-  (Process.proc program args)
-    { Process.cwd = Just ".." -- Tests are run from adatipd, we need repo root.
-    , Process.env = Just env }
+  let
+    -- Redirect stdout and stderr to /dev/null
+    -- so they don’t show up in the test output.
+    -- We *could* use Process.std_out and Process.std_err,
+    -- but setting those to null is harder than it should be.
+    bashScript = "exec \"$@\" > /dev/null 2> /dev/null"
+    bashArgs = "-c" : bashScript : "--" : program : args
+  in
+    (Process.proc "bash" bashArgs)
+      { -- Tests are run from adatipd, we need repo root.
+        Process.cwd = Just ".."
+      , Process.env = Just env }
 
 -- |
 -- Obtain environment variables to pass to database-related programs.
 -- The environment variables are merged with the existing ones.
-databaseEnv :: FilePath -> Word16 -> IO [(String, String)]
-databaseEnv directory port = do
+databaseEnv :: FilePath -> IO [(String, String)]
+databaseEnv directory = do
   oldEnv <- getEnvironment
   pure $
 
     [ -- Env vars for PostgreSQL tools.
       ("PGDATA", directory <> "/pgdata")
-    , ("PGHOST", "127.0.0.1")
-    , ("PGPORT", show port)
+    , ("PGHOST", directory <> "/pgsocket")
+    , ("PGPORT", "5432")
     , ("PGUSER", "adatip_setup")
     , ("PGPASSWORD", "adatip_setup")
     , ("PGDATABASE", "adatip")
 
       -- Env vars for dbmate.
-    , ("DATABASE_URL", "postgres://127.0.0.1:" <> show port <> "/?sslmode=disable")
+    , ("DATABASE_URL", "postgres:///?socket=" <> directory <> "/pgsocket")
     , ("DBMATE_MIGRATIONS_DIR", "database")
     , ("DBMATE_NO_DUMP_SCHEMA", "true") ]
 
@@ -109,11 +118,11 @@ databaseEnv directory port = do
 
 -- |
 -- Compute the settings string to pass to 'Sql.withConnection'.
-postgresSettings :: Word16 -> BS.ByteString
-postgresSettings port =
+postgresSettings :: FilePath -> BS.ByteString
+postgresSettings directory =
   BS.C8.pack $
-    "host=127.0.0.1 "           <>
-    "port=" <> show port <> " " <>
-    "user=adatip_app "          <>
-    "password=adatip_app "      <>
+    "host=" <> directory <> "/pgsocket " <>
+    "port=5432 "           <>
+    "user=adatip_app "     <>
+    "password=adatip_app " <>
     "dbname=adatip"

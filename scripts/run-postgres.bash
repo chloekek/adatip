@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# This script is used by Hivemind
-# and is also used by the tests.
+# This script is used by Hivemind and is also used by the tests.
+# We place a directory for Unix sockets next to the data directory.
+# By using Unix sockets instead of TCP sockets
+# we can easily spin up multiple instances
+# without having to find unique port numbers.
 
 set -efuo pipefail
 
@@ -21,4 +24,6 @@ if ! [[ -e "$PGDATA" ]]; then
 
 fi
 
-exec postgres -c config_file=scripts/postgresql.conf
+socket_dir=$PGDATA/../pgsocket
+
+exec postgres -c config_file=scripts/postgresql.conf -k "$socket_dir"

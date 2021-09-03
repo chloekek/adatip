@@ -9,7 +9,7 @@ module Adatipd.NicknameSpec
 import Adatipd.Nickname (format, parse)
 import Control.Applicative ((<|>))
 import Data.Function ((&))
-import Test.Hspec (Spec, it, shouldBe)
+import Test.Hspec (Spec, describe, it, shouldBe)
 import Test.Hspec.Hedgehog ((===), hedgehog)
 
 import qualified Data.Char as Char (isAsciiLower, isAsciiUpper, isDigit)
@@ -30,27 +30,29 @@ invalidChars = HG.filter (not . isValid) HG.unicode
                     Char.isDigit c
 
 spec :: Spec
-spec = do
+spec =
 
-  it "parse accepts valid input" $
-    hedgehog $ do
-      let lengthRange = HR.linear minLength maxLength
-      input <- H.forAll $ HG.text lengthRange validChars
-      let actual = parse input & fmap format
-      let expected = Right (Text.toLower input)
-      actual === expected
+  describe "parse" $ do
 
-  it "parse rejects empty input" $
-    parse "" `shouldBe` Left "Nickname is empty"
+    it "accepts valid input" $
+      hedgehog $ do
+        let lengthRange = HR.linear minLength maxLength
+        input <- H.forAll $ HG.text lengthRange validChars
+        let actual = parse input & fmap format
+        let expected = Right (Text.toLower input)
+        actual === expected
 
-  it "parse rejects overly long input" $
-    hedgehog $ do
-      let lengthRange = HR.linear (maxLength + 1) (maxLength * 2)
-      input <- H.forAll $ HG.text lengthRange validChars
-      parse input === Left "Nickname is too long"
+    it "rejects empty input" $
+      parse "" `shouldBe` Left "Nickname is empty"
 
-  it "parse rejects input with invalid characters" $
-    hedgehog $ do
-      let lengthRange = HR.linear minLength maxLength
-      input <- H.forAll $ HG.text lengthRange invalidChars
-      parse input === Left "Nickname contains invalid characters"
+    it "rejects overly long input" $
+      hedgehog $ do
+        let lengthRange = HR.linear (maxLength + 1) (maxLength * 2)
+        input <- H.forAll $ HG.text lengthRange validChars
+        parse input === Left "Nickname is too long"
+
+    it "rejects input with invalid characters" $
+      hedgehog $ do
+        let lengthRange = HR.linear minLength maxLength
+        input <- H.forAll $ HG.text lengthRange invalidChars
+        parse input === Left "Nickname contains invalid characters"
