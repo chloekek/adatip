@@ -58,7 +58,6 @@ library
         blaze-html,
         blaze-markup,
         bytestring,
-        containers,
         hasql,
         http-client,
         http-types,
@@ -68,11 +67,9 @@ library
         qrcode-core,
         qrcode-juicypixels,
         scientific,
-        servant,
         text,
         time,
         transformers,
-        unordered-containers,
         vector,
         wai
 

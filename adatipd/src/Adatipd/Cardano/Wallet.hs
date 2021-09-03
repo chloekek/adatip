@@ -3,6 +3,13 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
 
+-- | This module exposes types and functions to interact with cardano-wallet's
+-- REST API, which allows things like listing UTXOs for an address, and
+-- constructing new transactions.
+--
+-- Cardano-wallet internally uses Servant for this and it has a client, but it
+-- is difficult to use outside of cardano-wallet itself, so instead we write our
+-- own types and serializers and we interact with the API directly.
 module Adatipd.Cardano.Wallet
   ( ChainTip (..)
   , NetworkInfo (..)
@@ -14,7 +21,6 @@ module Adatipd.Cardano.Wallet
   ) where
 
 import Control.Monad (when)
-import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans (lift)
 import Data.Aeson (FromJSON, (.:))
@@ -74,15 +80,13 @@ instance FromJSON NetworkInfo where
 
 makeRequest
   :: FromJSON a
-  => MonadFail m
-  => MonadIO m
   => Http.Manager
   -> Method
   -> Text
-  -> m a
+  -> IO a
 makeRequest manager method url = do
-  request <- liftIO $ Http.parseRequest $ Text.unpack url
-  response <- liftIO $ Http.httpLbs (request { Http.method = method }) manager
+  request <- Http.parseRequest $ Text.unpack url
+  response <- Http.httpLbs (request { Http.method = method }) manager
 
   when (Http.responseStatus response /= Status.ok200) $
     fail $ "Got unexpected response for " <> (Text.unpack url) <> ": " <> (show response)
