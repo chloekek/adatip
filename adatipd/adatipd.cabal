@@ -107,15 +107,21 @@ test-suite test-unit
     other-modules:
         Adatipd.CardanoSpec
         Adatipd.NicknameSpec
+        Adatipd.Sql.Test
+        Adatipd.WebSpec
 
     build-depends:
         adatipd,
         aeson,
         base,
+        bytestring,
+        hasql,
         hedgehog,
         hspec,
         hspec-discover,
         hspec-expectations,
         hspec-hedgehog,
+        process,
+        temporary,
         text,
         time

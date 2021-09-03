@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: AGPL-3.0-only
 
-# This script is used by Hivemind.
+# This script is used by Hivemind
+# and is also used by the tests.
 
 set -efuo pipefail
 

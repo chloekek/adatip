@@ -15,16 +15,15 @@ let
     haskellPackages = p: [
         p.aeson                         # Dependency of cardano-wallet client.
         p.blaze-html                    # Library for generating HTML.
-        p.containers
         p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
-        p.http-client
-        p.mtl
+        p.http-client                   # HTTP client library.
+        p.mtl                           # Monad* classes.
         p.optparse-applicative          # Library for parsing CLI arguments.
         p.qrcode-juicypixels            # Library for rendering QR codes.
-        p.transformers
-        p.unordered-containers
+        p.temporary                     # Library for temporary files.
+        p.transformers                  # Monad transformers.
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];
