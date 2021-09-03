@@ -6,7 +6,8 @@ module Adatipd.Web.CreatorTipSuggestions
   ( handleCreatorTipSuggestions
   ) where
 
-import Adatipd.Cardano (Address (..), Lovelace (..), formatAdaWithSymbol, formatBech32)
+import Adatipd.Cardano.Address (Address (..), formatBech32)
+import Adatipd.Cardano.Token (Lovelace (..), formatAdaWithSymbol)
 import Adatipd.Creator (CreatorId, CreatorInfo (..), fetchCreatorInfo)
 import Adatipd.Options (Options (..))
 import Adatipd.Web.CreatorLayout (CreatorTab (..), renderCreatorLayout)
@@ -17,7 +18,7 @@ import Data.Vector (Vector)
 import Network.HTTP.Types.Status (status200)
 import Text.Blaze (Markup, (!))
 
-import qualified Adatipd.Cardano as Cardano (paymentUri)
+import qualified Adatipd.Cardano.Util as Cardano (paymentUri)
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai (Application, responseHtml)
 import qualified Codec.QRCode as Qr

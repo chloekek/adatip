@@ -1,0 +1,8 @@
+-- SPDX-License-Identifier: AGPL-3.0-only
+
+ignore-project: False
+tests: True
+-- These two options unlock Hspec's full potential in a terminal.
+-- Without it we only get to see a monochrome summary.
+test-options: "--color"
+test-show-details: direct

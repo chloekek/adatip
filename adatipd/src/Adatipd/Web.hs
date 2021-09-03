@@ -6,12 +6,13 @@ module Adatipd.Web
   ( handle
   ) where
 
+import Adatipd.Nickname (Nickname)
 import Adatipd.Options (Options (..))
+import Adatipd.Web.AdminStatus (handleAdminStatus)
 import Adatipd.Web.CreatorPosts (handleCreatorPosts)
 import Adatipd.Web.CreatorTiers (handleCreatorTiers)
 import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
 import Adatipd.Web.NotFound (handleNotFound)
-import Adatipd.Nickname (Nickname)
 
 import qualified Adatipd.Creator as Creator
 import qualified Adatipd.Nickname as Nickname
@@ -32,6 +33,10 @@ handle options sqlConn request writeResponse =
 
     (Nickname.parseUriComponent -> Right nickname) : _ ->
       handleCreator options sqlConn nickname request writeResponse
+
+    -- TODO: Add access controls to these route.
+    ["admin", "status"] ->
+      handleAdminStatus options request writeResponse
 
     _ ->
       handleNotFound options request writeResponse

@@ -34,13 +34,17 @@ library
         src
 
     exposed-modules:
-        Adatipd.Cardano
+        Adatipd.Cardano.Address
+        Adatipd.Cardano.Token
+        Adatipd.Cardano.Util
+        Adatipd.Cardano.Wallet
         Adatipd.Creator
         Adatipd.Nickname
         Adatipd.Options
         Adatipd.Sql
         Adatipd.WaiUtil
         Adatipd.Web
+        Adatipd.Web.AdminStatus
         Adatipd.Web.CreatorLayout
         Adatipd.Web.CreatorPosts
         Adatipd.Web.CreatorTiers
@@ -49,12 +53,15 @@ library
         Adatipd.Web.NotFound
 
     build-depends:
+        aeson,
         base,
         blaze-html,
         blaze-markup,
         bytestring,
         hasql,
+        http-client,
         http-types,
+        mtl,
         optparse-applicative,
         postgresql-binary,
         qrcode-core,
@@ -62,6 +69,7 @@ library
         scientific,
         text,
         time,
+        transformers,
         vector,
         wai
 
@@ -102,9 +110,12 @@ test-suite test-unit
 
     build-depends:
         adatipd,
+        aeson,
         base,
         hedgehog,
         hspec,
         hspec-discover,
+        hspec-expectations,
         hspec-hedgehog,
-        text
+        text,
+        time

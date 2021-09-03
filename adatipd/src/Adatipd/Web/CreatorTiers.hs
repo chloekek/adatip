@@ -8,7 +8,7 @@ module Adatipd.Web.CreatorTiers
 
 import Adatipd.Web.CreatorLayout
 
-import Adatipd.Cardano (Lovelace (..), formatAdaWithSymbol)
+import Adatipd.Cardano.Token (Lovelace (..), formatAdaWithSymbol)
 import Adatipd.Creator (CreatorId)
 import Adatipd.Options (Options (..))
 import Data.Foldable (traverse_)
