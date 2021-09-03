@@ -115,6 +115,12 @@ body
     text-decoration: none;
 }
 
+.page-footer
+{
+    @include center-content;
+    @include rich-text;
+}
+
 @import "creator-banner";
 @import "creator-tabs";
 @import "creator-posts";

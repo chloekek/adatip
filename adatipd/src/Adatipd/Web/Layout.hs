@@ -38,3 +38,11 @@ renderLayout Options {..} title content = do
 
   HH.section ! HA.class_ "page-content" $
     content
+
+  HH.section ! HA.class_ "page-footer" $
+    HH.p $ do
+      "Powered by "
+      HH.a
+        ! HA.href "https://github.com/chloekek/adatip"
+        $ "Adatip"
+      "."
