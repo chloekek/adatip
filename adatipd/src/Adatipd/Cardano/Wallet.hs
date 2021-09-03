@@ -23,7 +23,7 @@ module Adatipd.Cardano.Wallet
 import Control.Monad (when)
 import Control.Monad.Reader (ReaderT, ask, runReaderT)
 import Control.Monad.Trans (lift)
-import Data.Aeson (FromJSON, (.:))
+import Data.Aeson (FromJSON, (.:), (.:?))
 import Data.Text (Text)
 import Data.Time.Clock (UTCTime)
 import Network.HTTP.Types.Method (Method, methodGet)
@@ -67,14 +67,14 @@ instance FromJSON SyncProgress where
     <$> v .: "status"
 
 data NetworkInfo = NetworkInfo
-  { niNetworkTip :: ChainTip
+  { niNetworkTip :: Maybe ChainTip
   , niNodeTip :: ChainTip
   , niSyncProgress :: SyncProgress
   } deriving (Eq, Show)
 
 instance FromJSON NetworkInfo where
   parseJSON = Aeson.withObject "NetworkInfo" $ \v -> NetworkInfo
-    <$> v .: "network_tip"
+    <$> v .:? "network_tip"
     <*> v .: "node_tip"
     <*> v .: "sync_progress"
 

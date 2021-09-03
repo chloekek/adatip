@@ -50,7 +50,7 @@ spec = do
     it "deserializes example 1" $
       "v2-network-information-1.json" `shouldDeserializeTo`
       NetworkInfo
-        { niNetworkTip = ChainTip
+        { niNetworkTip = Just ChainTip
           { ctTime = read "2021-09-02 15:27:18Z"
           , ctEpochNumber = 154
           , ctAbsoluteSlotNumber = 36227222
@@ -68,7 +68,7 @@ spec = do
     it "deserializes example 2" $
       "v2-network-information-2.json" `shouldDeserializeTo`
       NetworkInfo
-        { niNetworkTip = ChainTip
+        { niNetworkTip = Just ChainTip
           { ctTime = read "2021-09-02 15:30:55Z"
           , ctEpochNumber = 154
           , ctAbsoluteSlotNumber = 36227439
@@ -81,4 +81,17 @@ spec = do
           , ctSlotInEpoch = 68964
           }
         , niSyncProgress = SyncProgress SyncReady
+        }
+
+    it "deserializes example 3" $
+      "v2-network-information-3.json" `shouldDeserializeTo`
+      NetworkInfo
+        { niNetworkTip = Nothing
+        , niNodeTip = ChainTip
+          { ctTime = read "2021-08-28 01:54:42Z"
+          , ctEpochNumber = 286
+          , ctAbsoluteSlotNumber = 38549391
+          , ctSlotInEpoch = 360591
+          }
+        , niSyncProgress = SyncProgress SyncSyncing
         }

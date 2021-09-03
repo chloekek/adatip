@@ -60,5 +60,11 @@ renderAdminStatus options networkInfo =
             HH.td $ HB.text $ case Wallet.niSyncProgress networkInfo of
               SyncProgress SyncReady   -> "ready"
               SyncProgress SyncSyncing -> "syncing"
-          renderChainTip "Network" $ Wallet.niNetworkTip networkInfo
+          case Wallet.niNetworkTip networkInfo of
+            Just tip -> renderChainTip "Network" tip
+            Nothing  -> do
+              HH.tr $ do
+                HH.td $ HB.text "Network tip"
+                HH.td $ HB.text "unavailable"
+
           renderChainTip "Node" $ Wallet.niNodeTip networkInfo

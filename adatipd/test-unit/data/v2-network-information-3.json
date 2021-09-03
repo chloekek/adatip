@@ -1,0 +1,20 @@
+{
+  "node_era": "mary",
+  "node_tip": {
+    "height": {
+      "quantity": 6169118,
+      "unit": "block"
+    },
+    "time": "2021-08-28T01:54:42Z",
+    "epoch_number": 286,
+    "absolute_slot_number": 38549391,
+    "slot_number": 360591
+  },
+  "sync_progress": {
+    "status": "syncing",
+    "progress": {
+      "quantity": 99.53,
+      "unit": "percent"
+    }
+  }
+}
