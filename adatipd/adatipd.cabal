@@ -11,6 +11,7 @@ common haskell-settings
     default-extensions:
         DeriveAnyClass
         DerivingStrategies
+        GeneralizedNewtypeDeriving
         LambdaCase
         NamedFieldPuns
         NumericUnderscores
@@ -24,6 +25,9 @@ common haskell-settings
         -Wall
         -Wincomplete-record-updates
         -Wincomplete-uni-patterns
+        -threaded
+        -rtsopts
+        -with-rtsopts=-N
 
 library
 
@@ -102,21 +106,24 @@ test-suite test-unit
         test-unit
 
     main-is:
-        Spec.hs
+        Main.hs
 
     other-modules:
         Adatipd.CardanoSpec
+        Adatipd.E2ETest
         Adatipd.NicknameSpec
-        Adatipd.Sql.Test
+        Adatipd.SqlTest
         Adatipd.WebSpec
+        Spec
 
     build-depends:
         adatipd,
         aeson,
         base,
         bytestring,
-        hasql,
+        directory,
         hedgehog,
+        http-types,
         hspec,
         hspec-discover,
         hspec-expectations,
@@ -124,4 +131,6 @@ test-suite test-unit
         process,
         temporary,
         text,
-        time
+        time,
+        transformers,
+        wai

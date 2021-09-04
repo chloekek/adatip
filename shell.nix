@@ -57,14 +57,14 @@ let
             # Note that the database setup scripts will override these
             # with their own values as they need to authenticate differently.
             PGDATA = toString state/postgresql/pgdata;
-            PGHOST = "127.0.0.1";
-            PGPORT = "8082";
+            PGHOST = toString state/postgresql/pgsocket;
+            PGPORT = "5432";
             PGUSER = "adatip_setup";
             PGPASSWORD = PGUSER;
             PGDATABASE = "adatip";
 
             # Configure dbmate for the same reason.
-            DATABASE_URL = "postgres://${PGHOST}:${PGPORT}/?sslmode=disable";
+            DATABASE_URL = "postgres:///?socket=${PGHOST}";
             DBMATE_MIGRATIONS_DIR = toString ./database;
             DBMATE_NO_DUMP_SCHEMA = "true";
 

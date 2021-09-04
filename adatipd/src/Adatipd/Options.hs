@@ -14,8 +14,7 @@ import Data.Text (Text)
 
 data Options =
   Options
-    { oCardanoNodeSocketPath :: FilePath
-    , oEnableSignUp :: Bool
+    { oEnableSignUp :: Bool
     , oInstanceTitle :: Text }
   deriving stock (Show)
 
@@ -27,14 +26,6 @@ optionsParserInfo =
 
 optionsParser :: Parser Options
 optionsParser = do
-
-  oCardanoNodeSocketPath <-
-    strOption $
-      long "cardano-node-socket-path"
-      <> metavar "PATH"
-      <> help "The same path given to cardano-node \
-              \as the --socket-path argument. \
-              \Used for talking to cardano-node."
 
   oEnableSignUp <-
     switch $

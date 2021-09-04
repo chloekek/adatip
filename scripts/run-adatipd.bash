@@ -19,5 +19,4 @@ export PGPASSWORD=$PGUSER
 find -type f -name '*.cabal' -or -name '*.hs' |   \
     exec entr -nr -- cabal --offline new-run --   \
         adatipd                                   \
-        --cardano-node-socket-path cardano.socket \
         --instance-title adatip.social
