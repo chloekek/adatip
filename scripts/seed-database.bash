@@ -39,6 +39,16 @@ VALUES
     , '2021-08-29T00:00:00Z'
     );
 
+INSERT INTO creator_password_hashes
+    (creator_id, created, password_hash)
+VALUES
+    ( '6fdc4c36-91b6-4946-9b8e-3cdf7ad56588'
+    , '2021-08-28T12:45:00Z'
+    , /* hunter2 */ '$argon2id$v=19$m=16,t=2,p=1$cmE1NHg5YmpKODg5Z2VjWA$zjNLradZqKHs75QZXxUToQ' ),
+    ( '584c76d5-d016-4c17-9cd7-bc469cec43f6'
+    , '2021-08-30T15:00:00Z'
+    , /* 123456 */ '$argon2id$v=19$m=16,t=2,p=1$QnpLVjluSml5STFONmZuOA$u89u8epV90HwPFVtS9+jig' );
+
 INSERT INTO creator_names
     (creator_id, created, name)
 VALUES
