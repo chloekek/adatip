@@ -23,6 +23,7 @@ let
         p.optparse-applicative          # Library for parsing CLI arguments.
         p.qrcode-juicypixels            # Library for rendering QR codes.
         p.temporary                     # Library for temporary files.
+        p.text-short                    # Used by Argon2 bindings.
         p.transformers                  # Monad transformers.
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
@@ -98,6 +99,7 @@ let
         nixpkgs.dbmate              # Database schema migration tool.
         nixpkgs.entr                # Autoreload tool, to rebuild on change.
         nixpkgs.hivemind            # Process supervisor for dev env.
+        nixpkgs.libargon2           # Password hashing library.
         nixpkgs.nginx               # Web server and HTTP proxy.
         nixpkgs.postgresql_13       # Relational database server.
         nixpkgs.python3             # To check migration file names.

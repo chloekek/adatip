@@ -34,6 +34,9 @@ library
     import:
         haskell-settings
 
+    cpp-options:
+        -DUSE_SYSTEM_ARGON2=1
+
     hs-source-dirs:
         src
 
@@ -55,6 +58,8 @@ library
         Adatipd.Web.CreatorTipSuggestions
         Adatipd.Web.Layout
         Adatipd.Web.NotFound
+        Crypto.Argon2
+        Crypto.Argon2.FFI
 
     build-depends:
         aeson,
@@ -62,6 +67,7 @@ library
         blaze-html,
         blaze-markup,
         bytestring,
+        deepseq,
         hasql,
         http-client,
         http-types,
@@ -72,6 +78,7 @@ library
         qrcode-juicypixels,
         scientific,
         text,
+        text-short,
         time,
         transformers,
         vector,
