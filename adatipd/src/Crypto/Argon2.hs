@@ -1,3 +1,5 @@
+-- SPDX-License-Identifier: BSD-3-Clause
+
 -- The remainder of this file is taken verbatim from [1].
 -- This library was marked broken in Nixpkgs so I just copied the source files.
 -- [1]: https://github.com/haskell-hvr/argon2/blob/cafbc6e5d998ba182d92879c3a6e7b3f5ca93fc1/src/Crypto/Argon2.hs

@@ -1,3 +1,5 @@
+-- SPDX-License-Identifier: BSD-3-Clause
+
 {-# OPTIONS_GHC -Wno-missing-signatures #-}
 {-# OPTIONS_GHC -Wno-missing-pattern-synonym-signatures #-}
 
