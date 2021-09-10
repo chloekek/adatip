@@ -39,7 +39,7 @@ renderLayout context@Context {..} title content = do
     $ renderBody context content
 
 renderBody :: Context -> Markup -> Markup
-renderBody context@Context {..} content = do
+renderBody Context {..} content = do
   let Options {..} = cOptions
 
   HH.header ! HA.class_ "page-header" $
