@@ -35,7 +35,7 @@ handle options sqlConn request writeResponse = do
     -- such as in the examples below.
 
     (Nickname.parseUriComponent -> Right nickname) : _ ->
-      handleCreator context sqlConn nickname request writeResponse
+      handleCreator context nickname request writeResponse
 
     -- TODO: Add access controls to these route.
     ["admin", "status"] ->
@@ -46,9 +46,9 @@ handle options sqlConn request writeResponse = do
 
 
 -- | Handle any page behind the /~creatorid path.
-handleCreator :: Context -> Sql.Connection -> Nickname -> Wai.Application
-handleCreator context sqlConn nickname request writeResponse =
-  Creator.fetchCreatorIdAndCurrentNickname sqlConn nickname >>= \case
+handleCreator :: Context -> Nickname -> Wai.Application
+handleCreator context@Context {..} nickname request writeResponse =
+  Creator.fetchCreatorIdAndCurrentNickname cSqlConn nickname >>= \case
     Nothing ->
       -- If no creator with this nickname exists, serve the generic not found
       -- page.
@@ -64,13 +64,13 @@ handleCreator context sqlConn nickname request writeResponse =
 
     Just (creatorId, _) -> case tail (Wai.pathInfo request) of
       [] ->
-        handleCreatorPosts context sqlConn creatorId request writeResponse
+        handleCreatorPosts context creatorId request writeResponse
 
       ["tips"] ->
-        handleCreatorTipSuggestions context sqlConn creatorId request writeResponse
+        handleCreatorTipSuggestions context creatorId request writeResponse
 
       ["tiers"] ->
-        handleCreatorTiers context sqlConn creatorId request writeResponse
+        handleCreatorTiers context creatorId request writeResponse
 
       _ ->
         handleNotFound context request writeResponse

@@ -70,10 +70,9 @@ mkQrImage amount address =
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorTipSuggestions
-  :: Context -> Sql.Connection -> CreatorId -> Wai.Application
-handleCreatorTipSuggestions context sqlConn creatorId _request writeResponse = do
-  creatorTipSuggestions <- fetchCreatorTipSuggestions sqlConn creatorId
+handleCreatorTipSuggestions :: Context -> CreatorId -> Wai.Application
+handleCreatorTipSuggestions context@Context {..} creatorId _request writeResponse = do
+  creatorTipSuggestions <- fetchCreatorTipSuggestions cSqlConn creatorId
   writeResponse $
     Wai.responseHtml status200 [] $
       renderCreatorTipSuggestions context creatorTipSuggestions

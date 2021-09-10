@@ -9,7 +9,7 @@ module Adatipd.Web.CreatorPosts
 import Adatipd.Web.CreatorLayout
 
 import Adatipd.Creator (CreatorId, encodeCreatorId)
-import Adatipd.Web.Context (Context)
+import Adatipd.Web.Context (Context (..))
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
 import Data.Time.Clock (NominalDiffTime, UTCTime, diffUTCTime, getCurrentTime)
@@ -92,9 +92,9 @@ fetchCreatorPosts sqlConn creatorId = do
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorPosts :: Context -> Sql.Connection -> CreatorId -> Wai.Application
-handleCreatorPosts context sqlConn creatorId _request writeResponse = do
-  creatorPosts <- fetchCreatorPosts sqlConn creatorId
+handleCreatorPosts :: Context -> CreatorId -> Wai.Application
+handleCreatorPosts context@Context {..} creatorId _request writeResponse = do
+  creatorPosts <- fetchCreatorPosts cSqlConn creatorId
   writeResponse $
     Wai.responseHtml status200 [] $
       renderCreatorPosts context creatorPosts

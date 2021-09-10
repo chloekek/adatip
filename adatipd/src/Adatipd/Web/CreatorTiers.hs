@@ -10,7 +10,7 @@ import Adatipd.Web.CreatorLayout
 
 import Adatipd.Cardano.Token (Lovelace (..), formatAdaWithSymbol)
 import Adatipd.Creator (CreatorId)
-import Adatipd.Web.Context (Context)
+import Adatipd.Web.Context (Context (..))
 import Data.Foldable (traverse_)
 import Data.Int (Int64)
 import Data.Text (Text)
@@ -69,9 +69,9 @@ lipsum =
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorTiers :: Context -> Sql.Connection -> CreatorId -> Wai.Application
-handleCreatorTiers context sqlConn creatorId _request writeResponse = do
-  creatorTiers <- fetchCreatorTiers sqlConn creatorId
+handleCreatorTiers :: Context -> CreatorId -> Wai.Application
+handleCreatorTiers context@Context {..} creatorId _request writeResponse = do
+  creatorTiers <- fetchCreatorTiers cSqlConn creatorId
   writeResponse $
     Wai.responseHtml status200 [] $
       renderCreatorTiers context creatorTiers
