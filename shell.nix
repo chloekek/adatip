@@ -15,6 +15,8 @@ let
     haskellPackages = p: [
         p.aeson                         # Dependency of cardano-wallet client.
         p.blaze-html                    # Library for generating HTML.
+        p.contravariant-extras          # Contravariant functor utilities.
+        p.cryptohash-sha256             # SHA-256 cryptographic hash function.
         p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.

@@ -3,27 +3,50 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Adatipd.Web.Context
-  ( Context (..)
+  ( -- * Contexts
+    Context (..)
+
+    -- * Requests and responses
   , makeContext
+  , SessionId
   , setSessionId
+
+    -- * Working with session data
+  , Session (..)
+  , SessionRef
+  , modifySession
+  , getSession
+  , flushSession
 
     -- * Convenient re-exports
   , Options (..)
   ) where
 
+import Adatipd.Creator (CreatorId (..))
 import Adatipd.Options (Options (..))
+import Contravariant.Extras.Contrazip (contrazip2)
 import Control.Category ((>>>))
+import Control.Monad (when)
 import Data.ByteString (ByteString)
+import Data.Functor.Contravariant ((>$<))
+import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Data.Maybe (fromMaybe)
 import Data.UUID.Types (UUID)
 import Web.Cookie (Cookies)
 
-import qualified Adatipd.Sql as Sql (Connection)
+import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai
+import qualified Crypto.Hash.SHA256 as Sha256 (hashlazy)
 import qualified Data.Binary.Builder as BSB (Builder, toLazyByteString)
 import qualified Data.ByteString.Lazy as LBS (toStrict)
-import qualified Data.UUID.Types as Uuid (fromASCIIBytes, toASCIIBytes)
+import qualified Data.UUID.Types as Uuid
 import qualified Data.UUID.V4 as Uuid.V4 (nextRandom)
+import qualified Hasql.Decoders as SqlDec
+import qualified Hasql.Encoders as SqlEnc
 import qualified Web.Cookie as Cookie
+
+--------------------------------------------------------------------------------
+-- Contexts
 
 -- |
 -- Information that is available within any request handler.
@@ -35,7 +58,11 @@ data Context =
   Context
     { cOptions :: Options
     , cSqlConn :: Sql.Connection
-    , cSessionId :: UUID }
+    , cSessionId :: SessionId
+    , cSession :: SessionRef }
+
+--------------------------------------------------------------------------------
+-- Requests and responses
 
 -- |
 -- Create a context for the current request.
@@ -43,6 +70,7 @@ makeContext :: Options -> Sql.Connection -> Wai.Request -> IO Context
 makeContext cOptions cSqlConn request = do
   let cookies = getCookies request
   cSessionId <- getSessionId cookies
+  cSession <- newSessionRef =<< fetchSession cSqlConn cSessionId
   pure Context {..}
 
 -- |
@@ -54,14 +82,21 @@ getCookies
   >>> maybe [] Cookie.parseCookies
 
 -- |
+-- Uniquely identifies a session.
+newtype SessionId =
+  SessionId UUID
+  deriving newtype (Show)
+
+-- |
 -- Retrieve the session identifier from the @sessionId@ cookie.
 -- If the cookie is malformed or missing,
 -- a new session identifier is generated.
-getSessionId :: Cookies -> IO UUID
+getSessionId :: Cookies -> IO SessionId
 getSessionId
   =   lookup "sessionId"
   >>> (>>= Uuid.fromASCIIBytes)
   >>> maybe Uuid.V4.nextRandom pure
+  >>> fmap SessionId
 
 -- |
 -- Set the @sessionId@ cookie to the session identifier from the context.
@@ -71,13 +106,14 @@ setSessionId :: Context -> Wai.Response -> Wai.Response
 setSessionId Context {..} response =
   let
     Options {..} = cOptions
+    SessionId sessionId = cSessionId
 
     setCookie :: BSB.Builder
     setCookie =
       Cookie.renderSetCookie
         Cookie.defaultSetCookie
           { Cookie.setCookieName     = "sessionId"
-          , Cookie.setCookieValue    = Uuid.toASCIIBytes cSessionId
+          , Cookie.setCookieValue    = Uuid.toASCIIBytes sessionId
           , Cookie.setCookiePath     = Just "/"
           , Cookie.setCookieMaxAge   = Just oSessionMaxAge
           , Cookie.setCookieHttpOnly = True -- Not accessible from JavaScript.
@@ -89,3 +125,122 @@ setSessionId Context {..} response =
 
   in
     Wai.mapResponseHeaders (("Set-Cookie", setCookie') :) response
+
+--------------------------------------------------------------------------------
+-- Working with session data
+
+-- |
+-- Because session identifiers grant access,
+-- we do not want to store them directly in the database.
+-- Instead, we store hashes of session identifiers.
+hashSessionId :: SessionId -> ByteString
+hashSessionId (SessionId sessionId) =
+  Sha256.hashlazy (Uuid.toByteString sessionId)
+
+-- |
+-- A session keeps track of user-specific data across requests.
+-- Sessions are tracked using session identifier cookies.
+-- Note that this is not “tracking” in the mass surveillance sense,
+-- but in the benign “functional cookies” sense.
+--
+-- Do not confuse with Hasql sessions. 😅
+data Session =
+  Session
+    { sCreatorId :: Maybe CreatorId }
+
+-- |
+-- Data for entirely new sessions.
+-- Such sessions are typically not stored in the database
+-- because they have not yet been modified.
+newSession :: Session
+newSession = Session Nothing
+
+-- |
+-- Mutable variable that stores session data during request handling.
+-- Also stores a dirty bit which is set when the session data is modified.
+-- When the dirty bit is set at the end of the request handling,
+-- the session will be flushed to the database.
+-- If the session has not been modified
+-- then we do not update it in the database.
+newtype SessionRef =
+  SessionRef (IORef (Session, Bool))
+
+-- |
+-- Create a new session ref that is not dirty.
+newSessionRef :: Session -> IO SessionRef
+newSessionRef session =
+  SessionRef <$>
+    newIORef (session, False)
+
+-- |
+-- Change the current session data and set the dirty bit.
+-- The dirty bit is set even if you didn’t actually change anything.
+modifySession :: Context -> (Session -> Session) -> IO ()
+modifySession Context { cSession = SessionRef ioref } f =
+  modifyIORef' ioref $
+    \(session, _dirty) ->
+      let !session' = f session in
+      (session', True)
+
+-- |
+-- Retrieve the current session data.
+getSession :: Context -> IO Session
+getSession Context { cSession = SessionRef ioref } =
+  fst <$> readIORef ioref
+
+-- |
+-- If the session is dirty, write it to the database.
+-- You do not need to call this, as we call it
+-- automatically at the end of the request handling.
+flushSession :: Context -> IO ()
+flushSession Context { cSqlConn, cSessionId, cSession = SessionRef ioref } = do
+
+  (Session {..}, dirty) <- readIORef ioref
+
+  when dirty $
+    Sql.runSession cSqlConn $
+      Sql.statement (hashSessionId cSessionId, sCreatorId) $
+        Sql.Statement
+          "INSERT INTO sessions (id_hash, created, creator_id)\n\
+          \VALUES ($1, now(), $2)\n\
+          \ON CONFLICT (id_hash)\n\
+          \  DO UPDATE\n\
+          \    SET creator_id = $2"
+          encodeParams
+          SqlDec.noResult
+          False
+
+  where
+    encodeParams :: SqlEnc.Params (ByteString, Maybe CreatorId)
+    encodeParams =
+      contrazip2
+        (SqlEnc.param (SqlEnc.nonNullable SqlEnc.bytea))
+        (SqlEnc.param (SqlEnc.nullable (getCreatorId >$< SqlEnc.uuid)))
+
+-- |
+-- Fetch the session from the database.
+-- If there is no such session, returns 'newSession'.
+fetchSession :: Sql.Connection -> SessionId -> IO Session
+fetchSession sqlConn sessionId = do
+
+  session <-
+    Sql.runSession sqlConn $
+      Sql.statement (hashSessionId sessionId) $
+        Sql.Statement
+          "SELECT\n\
+          \  creator_id\n\
+          \FROM\n\
+          \  sessions\n\
+          \WHERE\n\
+          \  id_hash = $1"
+        (SqlEnc.param (SqlEnc.nonNullable SqlEnc.bytea))
+        (SqlDec.rowMaybe decodeSession)
+        False
+
+  pure $ fromMaybe newSession session
+
+  where
+    decodeSession :: SqlDec.Row Session
+    decodeSession = do
+      sCreatorId <- SqlDec.column (SqlDec.nullable (CreatorId <$> SqlDec.uuid))
+      pure Session {..}

@@ -18,7 +18,7 @@ import qualified Adatipd.Creator as Creator
 import qualified Adatipd.Nickname as Nickname
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai
-import qualified Adatipd.Web.Context as Context (setSessionId)
+import qualified Adatipd.Web.Context as Context (flushSession, setSessionId)
 
 -- |
 -- Handle an incoming HTTP request and write the HTTP response.
@@ -27,7 +27,8 @@ import qualified Adatipd.Web.Context as Context (setSessionId)
 handle :: Options -> Sql.Connection -> Wai.Application
 handle options sqlConn request writeResponse = do
   context <- makeContext options sqlConn request
-  handle' context request $ \response ->
+  handle' context request $ \response -> do
+    Context.flushSession context
     writeResponse (Context.setSessionId context response)
 
 -- |

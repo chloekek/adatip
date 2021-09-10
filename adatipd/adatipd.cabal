@@ -9,6 +9,7 @@ common haskell-settings
     -- Only list extensions that do not impact code that doesn’t need them.
     -- Other extensions should be explicitly enabled with LANGUAGE pragmas.
     default-extensions:
+        BangPatterns
         DeriveAnyClass
         DerivingStrategies
         GeneralizedNewtypeDeriving
@@ -69,7 +70,9 @@ library
         blaze-html,
         blaze-markup,
         bytestring,
+        contravariant-extras,
         cookie,
+        cryptohash-sha256,
         deepseq,
         hasql,
         http-client,
