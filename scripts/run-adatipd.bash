@@ -19,4 +19,5 @@ export PGPASSWORD=$PGUSER
 find -type f -name '*.cabal' -or -name '*.hs' |   \
     exec entr -nr -- cabal --offline new-run --   \
         adatipd                                   \
+        --debug-mode                              \
         --instance-title adatip.social

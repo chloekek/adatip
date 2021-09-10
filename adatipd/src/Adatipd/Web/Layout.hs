@@ -7,6 +7,7 @@ module Adatipd.Web.Layout
   ) where
 
 import Adatipd.Web.Context (Context (..), Options (..))
+import Control.Monad (when)
 import Data.Text (Text)
 import Text.Blaze (Markup, (!))
 
@@ -19,7 +20,7 @@ import qualified Text.Blaze.Html5.Attributes as HA
 -- This includes doctype, head elements, navigation bars, etc.
 -- The options are used to decorate the page according to configuration.
 renderLayout :: Context -> Text -> Markup -> Markup
-renderLayout Context {..} title content = do
+renderLayout context@Context {..} title content = do
   let Options {..} = cOptions
 
   HH.docType
@@ -32,6 +33,14 @@ renderLayout Context {..} title content = do
     HB.text title
     HB.text " — "
     HB.text oInstanceTitle
+
+  HH.body
+    ! (if oDebugMode then HA.class_ "debug-mode" else mempty)
+    $ renderBody context content
+
+renderBody :: Context -> Markup -> Markup
+renderBody context@Context {..} content = do
+  let Options {..} = cOptions
 
   HH.header ! HA.class_ "page-header" $
     HH.a ! HA.class_ "-instance-title" ! HA.href "/" $
@@ -48,7 +57,7 @@ renderLayout Context {..} title content = do
         $ "Adatip"
       "."
 
-      -- TODO: Do not display this in production.
-      HB.string " Session identifier: "
-      HB.string (show cSessionId)
-      HB.string "."
+      when oDebugMode $ do
+        HB.string " Session identifier: "
+        HB.string (show cSessionId)
+        HB.string "."

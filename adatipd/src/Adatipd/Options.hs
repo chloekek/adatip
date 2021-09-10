@@ -15,7 +15,8 @@ import Data.Time.Clock (DiffTime, secondsToDiffTime)
 
 data Options =
   Options
-    { oEnableSignUp :: Bool
+    { oDebugMode :: Bool
+    , oEnableSignUp :: Bool
     , oInstanceTitle :: Text
     , oSessionMaxAge :: DiffTime }
   deriving stock (Show)
@@ -28,6 +29,15 @@ optionsParserInfo =
 
 optionsParser :: Parser Options
 optionsParser = do
+
+  oDebugMode <-
+    switch $
+      long "debug-mode"
+      <> help "Display various debugging tools in the application. \
+              \Absolutely do not enable this in production, \
+              \as it may leak private information. \
+              \The application will display a striped ribbon \
+              \to indicate that debug mode is enabled."
 
   oEnableSignUp <-
     switch $
