@@ -7,8 +7,8 @@ module Adatipd.Web
   ) where
 
 import Adatipd.Nickname (Nickname)
-import Adatipd.Options (Options (..))
 import Adatipd.Web.AdminStatus (handleAdminStatus)
+import Adatipd.Web.Context (Context (..), Options, makeContext)
 import Adatipd.Web.CreatorPosts (handleCreatorPosts)
 import Adatipd.Web.CreatorTiers (handleCreatorTiers)
 import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
@@ -22,7 +22,10 @@ import qualified Adatipd.WaiUtil as Wai
 -- |
 -- Handle an incoming HTTP request and write the HTTP response.
 handle :: Options -> Sql.Connection -> Wai.Application
-handle options sqlConn request writeResponse =
+handle options sqlConn request writeResponse = do
+
+  context <- makeContext options sqlConn request
+
   case Wai.pathInfo request of
 
     -- Routes are defined by simple pattern matching.
@@ -32,24 +35,24 @@ handle options sqlConn request writeResponse =
     -- such as in the examples below.
 
     (Nickname.parseUriComponent -> Right nickname) : _ ->
-      handleCreator options sqlConn nickname request writeResponse
+      handleCreator context sqlConn nickname request writeResponse
 
     -- TODO: Add access controls to these route.
     ["admin", "status"] ->
-      handleAdminStatus options request writeResponse
+      handleAdminStatus context request writeResponse
 
     _ ->
-      handleNotFound options request writeResponse
+      handleNotFound context request writeResponse
 
 
 -- | Handle any page behind the /~creatorid path.
-handleCreator :: Options -> Sql.Connection -> Nickname -> Wai.Application
-handleCreator options sqlConn nickname request writeResponse =
+handleCreator :: Context -> Sql.Connection -> Nickname -> Wai.Application
+handleCreator context sqlConn nickname request writeResponse =
   Creator.fetchCreatorIdAndCurrentNickname sqlConn nickname >>= \case
     Nothing ->
       -- If no creator with this nickname exists, serve the generic not found
       -- page.
-      handleNotFound options request writeResponse
+      handleNotFound context request writeResponse
 
     Just (_creatorId, currentNickname) | nickname /= currentNickname ->
       -- If the creator exists, but there is a newer nickname, redirect to the
@@ -61,13 +64,13 @@ handleCreator options sqlConn nickname request writeResponse =
 
     Just (creatorId, _) -> case tail (Wai.pathInfo request) of
       [] ->
-        handleCreatorPosts options sqlConn creatorId request writeResponse
+        handleCreatorPosts context sqlConn creatorId request writeResponse
 
       ["tips"] ->
-        handleCreatorTipSuggestions options sqlConn creatorId request writeResponse
+        handleCreatorTipSuggestions context sqlConn creatorId request writeResponse
 
       ["tiers"] ->
-        handleCreatorTiers options sqlConn creatorId request writeResponse
+        handleCreatorTiers context sqlConn creatorId request writeResponse
 
       _ ->
-        handleNotFound options request writeResponse
+        handleNotFound context request writeResponse

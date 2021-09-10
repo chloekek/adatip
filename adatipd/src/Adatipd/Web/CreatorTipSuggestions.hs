@@ -9,7 +9,7 @@ module Adatipd.Web.CreatorTipSuggestions
 import Adatipd.Cardano.Address (Address (..), formatBech32)
 import Adatipd.Cardano.Token (Lovelace (..), formatAdaWithSymbol)
 import Adatipd.Creator (CreatorId, CreatorInfo (..), fetchCreatorInfo)
-import Adatipd.Options (Options (..))
+import Adatipd.Web.Context (Context (..), Options (..))
 import Adatipd.Web.CreatorLayout (CreatorTab (..), renderCreatorLayout)
 import Codec.QRCode (QRImage)
 import Data.Foldable (for_)
@@ -71,12 +71,12 @@ mkQrImage amount address =
 -- Request handling
 
 handleCreatorTipSuggestions
-  :: Options -> Sql.Connection -> CreatorId -> Wai.Application
-handleCreatorTipSuggestions options sqlConn creatorId _request writeResponse = do
+  :: Context -> Sql.Connection -> CreatorId -> Wai.Application
+handleCreatorTipSuggestions context sqlConn creatorId _request writeResponse = do
   creatorTipSuggestions <- fetchCreatorTipSuggestions sqlConn creatorId
   writeResponse $
     Wai.responseHtml status200 [] $
-      renderCreatorTipSuggestions options creatorTipSuggestions
+      renderCreatorTipSuggestions context creatorTipSuggestions
 
 fetchCreatorTipSuggestions
   :: Sql.Connection -> CreatorId -> IO CreatorTipSuggestions
@@ -102,14 +102,14 @@ fetchCreatorTipSuggestions sqlConn creatorId = do
 
   pure CreatorTipSuggestions {..}
 
-renderCreatorTipSuggestions :: Options -> CreatorTipSuggestions -> Markup
-renderCreatorTipSuggestions options CreatorTipSuggestions {..} =
-  renderCreatorLayout options CreatorTipsTab ctsCreatorInfo $
+renderCreatorTipSuggestions :: Context -> CreatorTipSuggestions -> Markup
+renderCreatorTipSuggestions context CreatorTipSuggestions {..} =
+  renderCreatorLayout context CreatorTipsTab ctsCreatorInfo $
     HH.section ! HA.class_ "creator-tip-suggestions" $ do
       renderTutorial ctsCreatorInfo
       renderTipSuggestions ctsTipSuggestions ctsCustomAmountQrImage
       renderTipAddress ctsCreatorInfo ctsTipAddress
-      renderFinePrint ctsCreatorInfo options
+      renderFinePrint ctsCreatorInfo context
 
 renderTutorial :: CreatorInfo -> Markup
 renderTutorial CreatorInfo {..} =
@@ -172,8 +172,10 @@ renderTipAddress CreatorInfo {..} tipAddress =
     HB.text ciName *> ": "
     HH.code $ HB.text (formatBech32 tipAddress)
 
-renderFinePrint :: CreatorInfo -> Options -> Markup
-renderFinePrint CreatorInfo {..} Options {..} =
+renderFinePrint :: CreatorInfo -> Context -> Markup
+renderFinePrint CreatorInfo {..} Context {..} = do
+  let Options {..} = cOptions
+
   HH.p ! HA.class_ "-fine-print" $ do
     "When you send a tip, you send Ada directly to "
     HB.text ciName *> ". "
