@@ -14,6 +14,7 @@ import System.Process (CreateProcess, withCreateProcess, waitForProcess)
 import qualified Adatipd.Sql as Sql
 import qualified Data.ByteString as BS (ByteString)
 import qualified Data.ByteString.Char8 as BS.C8 (pack)
+import qualified Data.HashMap.Strict as HashMap
 import qualified Data.List as List (intercalate)
 import qualified System.Process as Process
 
@@ -98,23 +99,24 @@ mkCreateProcess env program args =
 databaseEnv :: FilePath -> IO [(String, String)]
 databaseEnv directory = do
   oldEnv <- getEnvironment
-  pure $
+  let
+    newEnv = HashMap.fromList
+      [ -- Env vars for PostgreSQL tools.
+        ("PGDATA", directory <> "/pgdata")
+      , ("PGHOST", directory <> "/pgsocket")
+      , ("PGPORT", "5432")
+      , ("PGUSER", "adatip_setup")
+      , ("PGPASSWORD", "adatip_setup")
+      , ("PGDATABASE", "adatip")
 
-    [ -- Env vars for PostgreSQL tools.
-      ("PGDATA", directory <> "/pgdata")
-    , ("PGHOST", directory <> "/pgsocket")
-    , ("PGPORT", "5432")
-    , ("PGUSER", "adatip_setup")
-    , ("PGPASSWORD", "adatip_setup")
-    , ("PGDATABASE", "adatip")
+        -- Env vars for dbmate.
+      , ("DATABASE_URL", "postgres:///?socket=" <> directory <> "/pgsocket")
+      , ("DBMATE_MIGRATIONS_DIR", "database")
+      , ("DBMATE_NO_DUMP_SCHEMA", "true") ]
 
-      -- Env vars for dbmate.
-    , ("DATABASE_URL", "postgres:///?socket=" <> directory <> "/pgsocket")
-    , ("DBMATE_MIGRATIONS_DIR", "database")
-    , ("DBMATE_NO_DUMP_SCHEMA", "true") ]
-
-    -- Original environment.
-    <> oldEnv
+  -- The left-hand side takes precedence, so if any of the variables we set were
+  -- already present, we override them.
+  pure $ HashMap.toList $ newEnv <> (HashMap.fromList oldEnv)
 
 -- |
 -- Compute the settings string to pass to 'Sql.withConnection'.

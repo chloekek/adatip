@@ -24,6 +24,7 @@ let
         p.qrcode-juicypixels            # Library for rendering QR codes.
         p.temporary                     # Library for temporary files.
         p.transformers                  # Monad transformers.
+        p.unordered-containers
         p.vector                        # Library for arrays.
         p.warp                          # Library for HTTP servers.
     ];
