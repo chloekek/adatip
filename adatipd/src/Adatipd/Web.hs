@@ -18,14 +18,22 @@ import qualified Adatipd.Creator as Creator
 import qualified Adatipd.Nickname as Nickname
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai
+import qualified Adatipd.Web.Context as Context (setSessionId)
 
 -- |
 -- Handle an incoming HTTP request and write the HTTP response.
+-- This also performs context creation and
+-- setting of the session identifier cookie.
 handle :: Options -> Sql.Connection -> Wai.Application
 handle options sqlConn request writeResponse = do
-
   context <- makeContext options sqlConn request
+  handle' context request $ \response ->
+    writeResponse (Context.setSessionId context response)
 
+-- |
+-- Like 'handle', but with a prepared context.
+handle' :: Context -> Wai.Application
+handle' context request writeResponse =
   case Wai.pathInfo request of
 
     -- Routes are defined by simple pattern matching.

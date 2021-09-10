@@ -11,11 +11,13 @@ module Adatipd.Options
 import Options.Applicative
 
 import Data.Text (Text)
+import Data.Time.Clock (DiffTime, secondsToDiffTime)
 
 data Options =
   Options
     { oEnableSignUp :: Bool
-    , oInstanceTitle :: Text }
+    , oInstanceTitle :: Text
+    , oSessionMaxAge :: DiffTime }
   deriving stock (Show)
 
 optionsParserInfo :: ParserInfo Options
@@ -40,5 +42,16 @@ optionsParser = do
       <> metavar "TITLE"
       <> help "The title of the instance, as free-form text. \
               \Shown to visitors in various parts of the user interface."
+
+  oSessionMaxAge <-
+    option (secondsToDiffTime <$> auto) $
+      long "session-max-age-seconds"
+      <> metavar "SECONDS"
+      <> value (60 * 60 * 24 * 365)
+      <> help "The maximum age of the sessionId cookie. \
+              \After this time of not visiting the website, \
+              \the sessionId cookie will be discarded by the browser, \
+              \causing the user to lose the session. \
+              \Larger values are more insecure."
 
   pure Options {..}

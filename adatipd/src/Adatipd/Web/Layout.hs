@@ -47,3 +47,8 @@ renderLayout Context {..} title content = do
         ! HA.href "https://github.com/chloekek/adatip"
         $ "Adatip"
       "."
+
+      -- TODO: Do not display this in production.
+      HB.string " Session identifier: "
+      HB.string (show cSessionId)
+      HB.string "."
