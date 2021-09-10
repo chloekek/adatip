@@ -68,6 +68,7 @@ library
         blaze-html,
         blaze-markup,
         bytestring,
+        cookie,
         deepseq,
         hasql,
         http-client,
@@ -82,6 +83,8 @@ library
         text-short,
         time,
         transformers,
+        uuid,
+        uuid-types,
         vector,
         wai
 
