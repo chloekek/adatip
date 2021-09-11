@@ -9,6 +9,7 @@ common haskell-settings
     -- Only list extensions that do not impact code that doesn’t need them.
     -- Other extensions should be explicitly enabled with LANGUAGE pragmas.
     default-extensions:
+        BangPatterns
         DeriveAnyClass
         DerivingStrategies
         GeneralizedNewtypeDeriving
@@ -34,6 +35,9 @@ library
     import:
         haskell-settings
 
+    cpp-options:
+        -DUSE_SYSTEM_ARGON2=1
+
     hs-source-dirs:
         src
 
@@ -49,19 +53,28 @@ library
         Adatipd.WaiUtil
         Adatipd.Web
         Adatipd.Web.AdminStatus
+        Adatipd.Web.Context
         Adatipd.Web.CreatorLayout
+        Adatipd.Web.CreatorLogOut
         Adatipd.Web.CreatorPosts
         Adatipd.Web.CreatorTiers
         Adatipd.Web.CreatorTipSuggestions
         Adatipd.Web.Layout
         Adatipd.Web.NotFound
+        Crypto.Argon2
+        Crypto.Argon2.FFI
 
     build-depends:
         aeson,
         base,
+        binary,
         blaze-html,
         blaze-markup,
         bytestring,
+        contravariant-extras,
+        cookie,
+        cryptohash-sha256,
+        deepseq,
         hasql,
         http-client,
         http-types,
@@ -72,8 +85,11 @@ library
         qrcode-juicypixels,
         scientific,
         text,
+        text-short,
         time,
         transformers,
+        uuid,
+        uuid-types,
         vector,
         wai
 

@@ -102,8 +102,32 @@ body
 // It contains instance-wide navigation.
 .page-header
 {
+    display: flex;
+    justify-content: space-between;
+
     background: var(--primary-color);
+
     padding: size(0.5rem);
+}
+
+body.debug-mode .page-header
+{
+    // Add a small striped ribbon to the page
+    // to indicate that we are in debug mode.
+    background:
+        linear-gradient(
+            transparent 0px,
+            transparent 4px,
+            var(--primary-color) 4px,
+            var(--primary-color) 100%
+        ),
+        repeating-linear-gradient(
+            -45deg,
+            black   0px,
+            black   8px,
+            yellow  8px,
+            yellow 16px,
+        );
 }
 
 // Title of the instance that links to home.
@@ -123,7 +147,8 @@ body
 
 @import "admin";
 @import "creator-banner";
-@import "creator-tabs";
+@import "creator-log-out";
 @import "creator-posts";
-@import "creator-tip-suggestions";
+@import "creator-tabs";
 @import "creator-tiers";
+@import "creator-tip-suggestions";

@@ -1,0 +1,17 @@
+// SPDX-License-Identifier: AGPL-3.0-only
+
+// The page that lets you log out as a creator.
+// You normally do not see this page;
+// it only shows up if for some reason
+// you did a GET request to /creator/log-out.
+
+.creator-log-out
+{
+    @include center-content;
+    @include creator-tabs-content-margin;
+
+    & > p
+    {
+        @include rich-text;
+    }
+}

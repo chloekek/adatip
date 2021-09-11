@@ -7,7 +7,7 @@ module Adatipd.Web.NotFound
   , renderNotFound
   ) where
 
-import Adatipd.Options (Options)
+import Adatipd.Web.Context (Context)
 import Adatipd.Web.Layout (renderLayout)
 import Network.HTTP.Types.Status (status404)
 import Text.Blaze (Markup)
@@ -19,16 +19,16 @@ import qualified Text.Blaze.Html5 as HH
 -- |
 -- Respond with a “404 Not Found” page.
 -- This also sets the status code to 404.
-handleNotFound :: Options -> Wai.Application
-handleNotFound options _request writeResponse =
+handleNotFound :: Context -> Wai.Application
+handleNotFound context _request writeResponse =
   writeResponse $
     Wai.responseHtml status404 [] $
-      renderNotFound options
+      renderNotFound context
 
 -- |
 -- Render a “404 Not Found” page.
-renderNotFound :: Options -> Markup
-renderNotFound options =
+renderNotFound :: Context -> Markup
+renderNotFound context =
   let title = "Page not found" in
-  renderLayout options title $
+  renderLayout context title $
     HH.h1 $ HB.text title

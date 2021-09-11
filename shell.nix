@@ -15,6 +15,8 @@ let
     haskellPackages = p: [
         p.aeson                         # Dependency of cardano-wallet client.
         p.blaze-html                    # Library for generating HTML.
+        p.contravariant-extras          # Contravariant functor utilities.
+        p.cryptohash-sha256             # SHA-256 cryptographic hash function.
         p.hasql                         # PostgreSQL client library.
         p.hspec-discover                # Program for finding Haskell tests.
         p.hspec-hedgehog                # Library for generative testing.
@@ -23,6 +25,7 @@ let
         p.optparse-applicative          # Library for parsing CLI arguments.
         p.qrcode-juicypixels            # Library for rendering QR codes.
         p.temporary                     # Library for temporary files.
+        p.text-short                    # Used by Argon2 bindings.
         p.transformers                  # Monad transformers.
         p.unordered-containers
         p.vector                        # Library for arrays.
@@ -99,6 +102,7 @@ let
         nixpkgs.dbmate              # Database schema migration tool.
         nixpkgs.entr                # Autoreload tool, to rebuild on change.
         nixpkgs.hivemind            # Process supervisor for dev env.
+        nixpkgs.libargon2           # Password hashing library.
         nixpkgs.nginx               # Web server and HTTP proxy.
         nixpkgs.postgresql_13       # Relational database server.
         nixpkgs.python3             # To check migration file names.

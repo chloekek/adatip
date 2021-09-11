@@ -21,6 +21,7 @@ import qualified Hasql.Decoders as SqlDec
 import qualified Hasql.Encoders as SqlEnc
 
 newtype CreatorId = CreatorId { getCreatorId :: UUID }
+  deriving newtype (Show)
 
 encodeCreatorId :: SqlEnc.Params CreatorId
 encodeCreatorId =

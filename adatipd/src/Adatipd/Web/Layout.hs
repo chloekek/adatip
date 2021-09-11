@@ -6,7 +6,9 @@ module Adatipd.Web.Layout
   ( renderLayout
   ) where
 
-import Adatipd.Options (Options (..))
+import Adatipd.Web.Context (Context (..), Options (..), Session (..))
+import Control.Monad (when)
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import Text.Blaze (Markup, (!))
 
@@ -18,8 +20,9 @@ import qualified Text.Blaze.Html5.Attributes as HA
 -- Surround the given title and content with HTML boilerplate.
 -- This includes doctype, head elements, navigation bars, etc.
 -- The options are used to decorate the page according to configuration.
-renderLayout :: Options -> Text -> Markup -> Markup
-renderLayout Options {..} title content = do
+renderLayout :: Context -> Text -> Markup -> Markup
+renderLayout context@Context {..} title content = do
+  let Options {..} = cOptions
 
   HH.docType
 
@@ -32,9 +35,28 @@ renderLayout Options {..} title content = do
     HB.text " — "
     HB.text oInstanceTitle
 
-  HH.header ! HA.class_ "page-header" $
+  HH.body
+    ! (if oDebugMode then HA.class_ "debug-mode" else mempty)
+    $ renderBody context content
+
+renderBody :: Context -> Markup -> Markup
+renderBody Context {..} content = do
+  let Options {..} = cOptions
+  let Session {..} = cSession
+
+  HH.header ! HA.class_ "page-header" $ do
+
     HH.a ! HA.class_ "-instance-title" ! HA.href "/" $
       HB.text oInstanceTitle
+
+    when (isJust sCreatorId) $
+      HH.form
+        ! HA.class_ "-creator-log-out"
+        ! HA.method "post"
+        ! HA.action "/creator/log-out"
+        $ HH.button
+            ! HA.type_ "submit"
+            $ "Log out"
 
   HH.section ! HA.class_ "page-content" $
     content
@@ -46,3 +68,9 @@ renderLayout Options {..} title content = do
         ! HA.href "https://github.com/chloekek/adatip"
         $ "Adatip"
       "."
+
+      when oDebugMode $ do
+        HB.string " Session identifier: "
+        HB.string (show cSessionId)
+        HB.string ". Session data: "
+        HB.string (show cSession)

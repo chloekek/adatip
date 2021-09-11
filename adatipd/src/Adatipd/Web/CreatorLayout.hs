@@ -16,7 +16,7 @@ module Adatipd.Web.CreatorLayout
 
 import Adatipd.Nickname (Nickname)
 import Adatipd.Creator (CreatorInfo (..), fetchCreatorInfo)
-import Adatipd.Options (Options)
+import Adatipd.Web.Context (Context)
 import Adatipd.Web.Layout (renderLayout)
 import Data.Text (Text)
 import Text.Blaze (Markup, (!))
@@ -58,14 +58,14 @@ creatorTabUri nickname creatorTab =
 -- Creator layout
 
 renderCreatorLayout
-  :: Options
+  :: Context
   -> CreatorTab
   -> CreatorInfo
   -> Markup
   -> Markup
-renderCreatorLayout options selectedTab CreatorInfo {..} content =
+renderCreatorLayout context selectedTab CreatorInfo {..} content =
 
-  renderLayout options ciName $ do
+  renderLayout context ciName $ do
 
     HH.header ! HA.class_ "creator-banner" $ do
       HH.h1 ! HA.class_ "-name" $ HB.text ciName

@@ -9,7 +9,7 @@ module Adatipd.Web.CreatorPosts
 import Adatipd.Web.CreatorLayout
 
 import Adatipd.Creator (CreatorId, encodeCreatorId)
-import Adatipd.Options (Options)
+import Adatipd.Web.Context (Context (..))
 import Data.Foldable (for_, traverse_)
 import Data.Text (Text)
 import Data.Time.Clock (NominalDiffTime, UTCTime, diffUTCTime, getCurrentTime)
@@ -92,16 +92,16 @@ fetchCreatorPosts sqlConn creatorId = do
 --------------------------------------------------------------------------------
 -- Request handling
 
-handleCreatorPosts :: Options -> Sql.Connection -> CreatorId -> Wai.Application
-handleCreatorPosts options sqlConn creatorId _request writeResponse = do
-  creatorPosts <- fetchCreatorPosts sqlConn creatorId
+handleCreatorPosts :: Context -> CreatorId -> Wai.Application
+handleCreatorPosts context@Context {..} creatorId _request writeResponse = do
+  creatorPosts <- fetchCreatorPosts cSqlConn creatorId
   writeResponse $
     Wai.responseHtml status200 [] $
-      renderCreatorPosts options creatorPosts
+      renderCreatorPosts context creatorPosts
 
-renderCreatorPosts :: Options -> CreatorPosts -> Markup
-renderCreatorPosts options CreatorPosts {..} =
-  renderCreatorLayout options CreatorPostsTab chCreatorInfo $
+renderCreatorPosts :: Context -> CreatorPosts -> Markup
+renderCreatorPosts context CreatorPosts {..} =
+  renderCreatorLayout context CreatorPostsTab chCreatorInfo $
     HH.section ! HA.class_ "creator-posts" $
       traverse_ renderPost chMostRecentPosts
 

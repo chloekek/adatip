@@ -7,22 +7,36 @@ module Adatipd.Web
   ) where
 
 import Adatipd.Nickname (Nickname)
-import Adatipd.Options (Options (..))
 import Adatipd.Web.AdminStatus (handleAdminStatus)
+import Adatipd.Web.Context (Context (..), Options, makeContext)
+import Adatipd.Web.CreatorLogOut (handleCreatorLogOut)
 import Adatipd.Web.CreatorPosts (handleCreatorPosts)
 import Adatipd.Web.CreatorTiers (handleCreatorTiers)
 import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
 import Adatipd.Web.NotFound (handleNotFound)
+import Network.HTTP.Types.Status (movedPermanently301)
 
 import qualified Adatipd.Creator as Creator
 import qualified Adatipd.Nickname as Nickname
 import qualified Adatipd.Sql as Sql
 import qualified Adatipd.WaiUtil as Wai
+import qualified Adatipd.Web.Context as Context (flushSession, setSessionId)
 
 -- |
 -- Handle an incoming HTTP request and write the HTTP response.
+-- This also performs context creation and
+-- setting of the session identifier cookie.
 handle :: Options -> Sql.Connection -> Wai.Application
-handle options sqlConn request writeResponse =
+handle options sqlConn request writeResponse = do
+  context <- makeContext options sqlConn request
+  handle' context request $ \response -> do
+    Context.flushSession context
+    writeResponse (Context.setSessionId context response)
+
+-- |
+-- Like 'handle', but with a prepared context.
+handle' :: Context -> Wai.Application
+handle' context request writeResponse =
   case Wai.pathInfo request of
 
     -- Routes are defined by simple pattern matching.
@@ -32,42 +46,45 @@ handle options sqlConn request writeResponse =
     -- such as in the examples below.
 
     (Nickname.parseUriComponent -> Right nickname) : _ ->
-      handleCreator options sqlConn nickname request writeResponse
+      handleCreator context nickname request writeResponse
+
+    ["creator", "log-out"] ->
+      handleCreatorLogOut context request writeResponse
 
     -- TODO: Add access controls to these route.
     ["admin", "status"] ->
-      handleAdminStatus options request writeResponse
+      handleAdminStatus context request writeResponse
 
     _ ->
-      handleNotFound options request writeResponse
+      handleNotFound context request writeResponse
 
 
 -- | Handle any page behind the /~creatorid path.
-handleCreator :: Options -> Sql.Connection -> Nickname -> Wai.Application
-handleCreator options sqlConn nickname request writeResponse =
-  Creator.fetchCreatorIdAndCurrentNickname sqlConn nickname >>= \case
+handleCreator :: Context -> Nickname -> Wai.Application
+handleCreator context@Context {..} nickname request writeResponse =
+  Creator.fetchCreatorIdAndCurrentNickname cSqlConn nickname >>= \case
     Nothing ->
       -- If no creator with this nickname exists, serve the generic not found
       -- page.
-      handleNotFound options request writeResponse
+      handleNotFound context request writeResponse
 
     Just (_creatorId, currentNickname) | nickname /= currentNickname ->
       -- If the creator exists, but there is a newer nickname, redirect to the
       -- same url but with the new nickname. This loses the query string.
       writeResponse
-        $ Wai.responseRedirectPermanently
+        $ Wai.responseRedirect movedPermanently301
         $ Nickname.formatUriComponent currentNickname
         : tail (Wai.pathInfo request)
 
     Just (creatorId, _) -> case tail (Wai.pathInfo request) of
       [] ->
-        handleCreatorPosts options sqlConn creatorId request writeResponse
+        handleCreatorPosts context creatorId request writeResponse
 
       ["tips"] ->
-        handleCreatorTipSuggestions options sqlConn creatorId request writeResponse
+        handleCreatorTipSuggestions context creatorId request writeResponse
 
       ["tiers"] ->
-        handleCreatorTiers options sqlConn creatorId request writeResponse
+        handleCreatorTiers context creatorId request writeResponse
 
       _ ->
-        handleNotFound options request writeResponse
+        handleNotFound context request writeResponse

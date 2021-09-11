@@ -7,7 +7,7 @@ module Adatipd.Web.AdminStatus
   ) where
 
 import Adatipd.Cardano.Wallet (NetworkInfo (..), SyncProgress (..), SyncStatus (..), withWallet)
-import Adatipd.Options (Options (..))
+import Adatipd.Web.Context (Context)
 import Adatipd.Web.Layout (renderLayout)
 import Text.Blaze (Markup, (!))
 
@@ -19,18 +19,18 @@ import qualified Text.Blaze as HB
 import qualified Text.Blaze.Html5 as HH
 import qualified Text.Blaze.Html5.Attributes as HA
 
-handleAdminStatus :: Options -> Wai.Application
-handleAdminStatus options _request writeResponse = do
+handleAdminStatus :: Context -> Wai.Application
+handleAdminStatus context _request writeResponse = do
   networkInfo <- withWallet $ Wallet.getNetworkInfo
   writeResponse $
     Wai.responseHtml Status.ok200 [] $
-      renderAdminStatus options networkInfo
+      renderAdminStatus context networkInfo
 
 renderAdminStatus
-  :: Options
+  :: Context
   -> NetworkInfo
   -> Markup
-renderAdminStatus options networkInfo =
+renderAdminStatus context networkInfo =
   let
     title = "Instance Status"
     renderChainTip name tip = do
@@ -48,7 +48,7 @@ renderAdminStatus options networkInfo =
         HH.td $ HB.text $ Text.pack $ show $ Wallet.ctSlotInEpoch tip
 
   in
-    renderLayout options title $ do
+    renderLayout context title $ do
       HH.header ! HA.class_ "admin-banner" $ do
         HH.h1 $ HB.text "Instance Status"
 
