@@ -13,9 +13,7 @@ module Adatipd.Web.Context
 
     -- * Working with session data
   , Session (..)
-  , SessionRef
   , modifySession
-  , getSession
   , flushSession
 
     -- * Convenient re-exports
@@ -26,10 +24,9 @@ import Adatipd.Creator (CreatorId (..))
 import Adatipd.Options (Options (..))
 import Contravariant.Extras.Contrazip (contrazip2)
 import Control.Category ((>>>))
-import Control.Monad (when)
 import Data.ByteString (ByteString)
 import Data.Functor.Contravariant ((>$<))
-import Data.IORef (IORef, modifyIORef', newIORef, readIORef)
+import Data.IORef (IORef, modifyIORef, newIORef, readIORef)
 import Data.Maybe (fromMaybe)
 import Data.UUID.Types (UUID)
 import Web.Cookie (Cookies)
@@ -59,7 +56,8 @@ data Context =
     { cOptions :: Options
     , cSqlConn :: Sql.Connection
     , cSessionId :: SessionId
-    , cSession :: SessionRef }
+    , cSession :: Session
+    , cModifySession :: IORef (Maybe (Session -> Session)) }
 
 --------------------------------------------------------------------------------
 -- Requests and responses
@@ -70,7 +68,8 @@ makeContext :: Options -> Sql.Connection -> Wai.Request -> IO Context
 makeContext cOptions cSqlConn request = do
   let cookies = getCookies request
   cSessionId <- getSessionId cookies
-  cSession <- newSessionRef =<< fetchSession cSqlConn cSessionId
+  cSession <- fetchSession cSqlConn cSessionId
+  cModifySession <- newIORef Nothing
   pure Context {..}
 
 -- |
@@ -147,6 +146,7 @@ hashSessionId (SessionId sessionId) =
 data Session =
   Session
     { sCreatorId :: Maybe CreatorId }
+  deriving stock (Show)
 
 -- |
 -- Data for entirely new sessions.
@@ -156,69 +156,14 @@ newSession :: Session
 newSession = Session Nothing
 
 -- |
--- Mutable variable that stores session data during request handling.
--- Also stores a dirty bit which is set when the session data is modified.
--- When the dirty bit is set at the end of the request handling,
--- the session will be flushed to the database.
--- If the session has not been modified
--- then we do not update it in the database.
-newtype SessionRef =
-  SessionRef (IORef (Session, Bool))
-
--- |
--- Create a new session ref that is not dirty.
-newSessionRef :: Session -> IO SessionRef
-newSessionRef session =
-  SessionRef <$>
-    newIORef (session, False)
-
--- |
--- Change the current session data and set the dirty bit.
--- The dirty bit is set even if you didn’t actually change anything.
+-- Schedule application of a function to the session,
+-- to be flushed at the end of the request handling.
 modifySession :: Context -> (Session -> Session) -> IO ()
-modifySession Context { cSession = SessionRef ioref } f =
-  modifyIORef' ioref $
-    \(session, _dirty) ->
-      let !session' = f session in
-      (session', True)
+modifySession Context {..} modify =
+  modifyIORef cModifySession (Just . maybe modify (modify .))
 
 -- |
--- Retrieve the current session data.
-getSession :: Context -> IO Session
-getSession Context { cSession = SessionRef ioref } =
-  fst <$> readIORef ioref
-
--- |
--- If the session is dirty, write it to the database.
--- You do not need to call this, as we call it
--- automatically at the end of the request handling.
-flushSession :: Context -> IO ()
-flushSession Context { cSqlConn, cSessionId, cSession = SessionRef ioref } = do
-
-  (Session {..}, dirty) <- readIORef ioref
-
-  when dirty $
-    Sql.runSession cSqlConn $
-      Sql.statement (hashSessionId cSessionId, sCreatorId) $
-        Sql.Statement
-          "INSERT INTO sessions (id_hash, created, creator_id)\n\
-          \VALUES ($1, now(), $2)\n\
-          \ON CONFLICT (id_hash)\n\
-          \  DO UPDATE\n\
-          \    SET creator_id = $2"
-          encodeParams
-          SqlDec.noResult
-          False
-
-  where
-    encodeParams :: SqlEnc.Params (ByteString, Maybe CreatorId)
-    encodeParams =
-      contrazip2
-        (SqlEnc.param (SqlEnc.nonNullable SqlEnc.bytea))
-        (SqlEnc.param (SqlEnc.nullable (getCreatorId >$< SqlEnc.uuid)))
-
--- |
--- Fetch the session from the database.
+-- Fetch a session from the database.
 -- If there is no such session, returns 'newSession'.
 fetchSession :: Sql.Connection -> SessionId -> IO Session
 fetchSession sqlConn sessionId = do
@@ -244,3 +189,43 @@ fetchSession sqlConn sessionId = do
     decodeSession = do
       sCreatorId <- SqlDec.column (SqlDec.nullable (CreatorId <$> SqlDec.uuid))
       pure Session {..}
+
+-- |
+-- If the session was modified during the request handling,
+-- write the new session data to the database.
+-- You do not need to call this, as we call it
+-- automatically at the end of the request handling.
+flushSession :: Context -> IO ()
+flushSession Context { cSqlConn, cSessionId, cSession, cModifySession } = do
+
+  readIORef cModifySession >>= \case
+
+    Nothing ->
+      -- If the session was not modified then we do not need to upsert it.
+      -- This also keeps empty sessions out of the database.
+      pure ()
+
+    Just modify -> do
+
+      -- Apply the session modifications to the old session.
+      let Session {..} = modify cSession
+
+      -- Upsert the new session into the database.
+      Sql.runSession cSqlConn $
+        Sql.statement (hashSessionId cSessionId, sCreatorId) $
+          Sql.Statement
+            "INSERT INTO sessions (id_hash, created, creator_id)\n\
+            \VALUES ($1, now(), $2)\n\
+            \ON CONFLICT (id_hash)\n\
+            \  DO UPDATE\n\
+            \    SET creator_id = $2"
+            encodeParams
+            SqlDec.noResult
+            False
+
+  where
+    encodeParams :: SqlEnc.Params (ByteString, Maybe CreatorId)
+    encodeParams =
+      contrazip2
+        (SqlEnc.param (SqlEnc.nonNullable SqlEnc.bytea))
+        (SqlEnc.param (SqlEnc.nullable (getCreatorId >$< SqlEnc.uuid)))

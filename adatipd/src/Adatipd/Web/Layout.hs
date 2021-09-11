@@ -60,4 +60,5 @@ renderBody Context {..} content = do
       when oDebugMode $ do
         HB.string " Session identifier: "
         HB.string (show cSessionId)
-        HB.string "."
+        HB.string ". Session data: "
+        HB.string (show cSession)
