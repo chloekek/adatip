@@ -57,7 +57,12 @@ data Context =
     , cSqlConn :: Sql.Connection
     , cSessionId :: SessionId
     , cSession :: Session
-    , cModifySession :: IORef (Maybe (Session -> Session)) }
+        -- ^ Session data at the start of the request handling.
+    , cModifySession :: IORef (Maybe (Session -> Session))
+        -- ^ How to modify session data at the end of the request handling.
+        -- 'Nothing' is logically equivalent to @'Just' 'id'@,
+        -- but in case of 'Nothing' we do not perform an upsert.
+    }
 
 --------------------------------------------------------------------------------
 -- Requests and responses
