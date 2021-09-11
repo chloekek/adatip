@@ -55,6 +55,7 @@ library
         Adatipd.Web.AdminStatus
         Adatipd.Web.Context
         Adatipd.Web.CreatorLayout
+        Adatipd.Web.CreatorLogOut
         Adatipd.Web.CreatorPosts
         Adatipd.Web.CreatorTiers
         Adatipd.Web.CreatorTipSuggestions

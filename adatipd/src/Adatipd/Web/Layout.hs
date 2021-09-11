@@ -6,8 +6,9 @@ module Adatipd.Web.Layout
   ( renderLayout
   ) where
 
-import Adatipd.Web.Context (Context (..), Options (..))
+import Adatipd.Web.Context (Context (..), Options (..), Session (..))
 import Control.Monad (when)
+import Data.Maybe (isJust)
 import Data.Text (Text)
 import Text.Blaze (Markup, (!))
 
@@ -41,10 +42,21 @@ renderLayout context@Context {..} title content = do
 renderBody :: Context -> Markup -> Markup
 renderBody Context {..} content = do
   let Options {..} = cOptions
+  let Session {..} = cSession
 
-  HH.header ! HA.class_ "page-header" $
+  HH.header ! HA.class_ "page-header" $ do
+
     HH.a ! HA.class_ "-instance-title" ! HA.href "/" $
       HB.text oInstanceTitle
+
+    when (isJust sCreatorId) $
+      HH.form
+        ! HA.class_ "-creator-log-out"
+        ! HA.method "post"
+        ! HA.action "/creator/log-out"
+        $ HH.button
+            ! HA.type_ "submit"
+            $ "Log out"
 
   HH.section ! HA.class_ "page-content" $
     content

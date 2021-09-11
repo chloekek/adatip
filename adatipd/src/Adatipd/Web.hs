@@ -9,10 +9,12 @@ module Adatipd.Web
 import Adatipd.Nickname (Nickname)
 import Adatipd.Web.AdminStatus (handleAdminStatus)
 import Adatipd.Web.Context (Context (..), Options, makeContext)
+import Adatipd.Web.CreatorLogOut (handleCreatorLogOut)
 import Adatipd.Web.CreatorPosts (handleCreatorPosts)
 import Adatipd.Web.CreatorTiers (handleCreatorTiers)
 import Adatipd.Web.CreatorTipSuggestions (handleCreatorTipSuggestions)
 import Adatipd.Web.NotFound (handleNotFound)
+import Network.HTTP.Types.Status (movedPermanently301)
 
 import qualified Adatipd.Creator as Creator
 import qualified Adatipd.Nickname as Nickname
@@ -46,6 +48,9 @@ handle' context request writeResponse =
     (Nickname.parseUriComponent -> Right nickname) : _ ->
       handleCreator context nickname request writeResponse
 
+    ["creator", "log-out"] ->
+      handleCreatorLogOut context request writeResponse
+
     -- TODO: Add access controls to these route.
     ["admin", "status"] ->
       handleAdminStatus context request writeResponse
@@ -67,7 +72,7 @@ handleCreator context@Context {..} nickname request writeResponse =
       -- If the creator exists, but there is a newer nickname, redirect to the
       -- same url but with the new nickname. This loses the query string.
       writeResponse
-        $ Wai.responseRedirectPermanently
+        $ Wai.responseRedirect movedPermanently301
         $ Nickname.formatUriComponent currentNickname
         : tail (Wai.pathInfo request)
 

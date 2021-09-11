@@ -102,7 +102,11 @@ body
 // It contains instance-wide navigation.
 .page-header
 {
+    display: flex;
+    justify-content: space-between;
+
     background: var(--primary-color);
+
     padding: size(0.5rem);
 }
 
@@ -143,7 +147,8 @@ body.debug-mode .page-header
 
 @import "admin";
 @import "creator-banner";
-@import "creator-tabs";
+@import "creator-log-out";
 @import "creator-posts";
-@import "creator-tip-suggestions";
+@import "creator-tabs";
 @import "creator-tiers";
+@import "creator-tip-suggestions";
